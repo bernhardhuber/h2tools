@@ -7,6 +7,8 @@ Commandline tools using h2 database
 
 # MainH2
 
+## Usage
+
 ```
 Usage: MainH2 [-hV] [--driver=DRIVER] [--password=PASSWORD] [--url=URL]
               [--user=USER] [@<filename>...] [COMMAND]
@@ -50,7 +52,7 @@ Commands:
   show      Lists the schemas, tables, or the columns of a table.
 ```
 
-# Available Commands
+## Available Commands
 
 Command Name, Class, Description
 
@@ -103,6 +105,8 @@ Interactive command line tool to access a database using JDBC.
 
 
 # MainTools
+
+## Usage
 
 ```
 Usage: MainTools [-hV] [@<filename>...] [<toolName>]
