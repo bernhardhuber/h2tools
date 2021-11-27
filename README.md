@@ -50,6 +50,58 @@ Commands:
   show      Lists the schemas, tables, or the columns of a table.
 ```
 
+# Available Commands
+
+Command Name, Class, Description
+
+*Backup*, class org.h2.tools.Backup,
+Creates a backup of a database. This tool copies all database files. 
+The database must be closed before using this tool. 
+To create a backup while the database is in use, run the BACKUP SQL statement.
+In an emergency, for example if the application is not responding, 
+creating a backup using the Backup tool is possible by using the quiet mode. 
+However, if the database is changed while the backup is running in quiet mode, 
+the backup could be corrupt.
+
+*ChangeFileEncryption*, class org.h2.tools.ChangeFileEncryption,
+Allows changing the database file encryption password or algorithm. 
+This tool can not be used to change a password of a user. 
+The database must be closed before using this tool.
+
+*Console*, class org.h2.tools.Console,
+Starts the H2 Console (web-) server, as well as the TCP and PG server.
+
+*ConvertTraceFile*, class org.h2.tools.ConvertTraceFile,
+Converts a .trace.db file to a SQL script and Java source code. 
+SQL statement statistics are listed as well.
+
+*CreateCluster*, class org.h2.tools.CreateCluster,
+Creates a cluster from a stand-alone database. 
+Copies a database to another location if required.
+
+*DeleteDbFiles*, class org.h2.tools.DeleteDbFiles,
+Deletes all files belonging to a database. 
+The database must be closed before calling this tool.
+
+*Recover*, class org.h2.tools.Recover,
+Helps recovering a corrupted database.
+
+*Restore*, class org.h2.tools.Restore,
+Restores a H2 database by extracting the database files from a .zip file.
+
+*RunScript*, class org.h2.tools.RunScript,
+Runs a SQL script against a database.
+
+*Script*, class org.h2.tools.Script,
+Creates a SQL script file by extracting the schema and data of a database.
+
+*Server*, class org.h2.tools.Server,
+Starts the H2 Console (web-) server, TCP, and PG server.
+
+*Shell*, class org.h2.tools.Shell,
+Interactive command line tool to access a database using JDBC.
+
+
 # MainTools
 
 ```
@@ -81,3 +133,6 @@ jdbc:h2:..;TRACE_LEVEL_FILE=3 log to *.trace.db
   -V, --version          Print version information and exit.
 ```
 
+# References
+
+H2 http://h2database.com/
