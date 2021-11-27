@@ -66,9 +66,9 @@ public class MainTools implements Callable<Integer> {
 
     /**
      * main entry point.
-     * 
+     *
      * @param args
-     * @throws Exception 
+     * @throws Exception
      */
     public static void main(String[] args) throws Exception {
         final MainTools mainTools = new MainTools();
@@ -100,9 +100,9 @@ public class MainTools implements Callable<Integer> {
 
     /**
      * Picocli entry point.
-     * 
+     *
      * @return application exist status.
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
     public Integer call() throws Exception {
@@ -134,12 +134,12 @@ public class MainTools implements Callable<Integer> {
 
     void printAvailableClasses() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Available commands\n\nCommand Name, Class, Description\n");
+        sb.append(String.format("Available commands%n%nCommand Name, Class, Description%n"));
         for (ToolEntry te : mainToolRegistry.retrieveIterableOfToolClassesWithMain()) {
             final String simpleName = te.name;
             final Class clazz = te.clazz;
             final String description = te.description;
-            sb.append(String.format("@|bold %s|@, %s,\n%s\n\n", simpleName, clazz, description));
+            sb.append(String.format("@|bold %s|@, %s,%n%s%n%n", simpleName, clazz, description));
         }
         final String str = Ansi.AUTO.string(sb.toString());
         loggerInfo(str);
