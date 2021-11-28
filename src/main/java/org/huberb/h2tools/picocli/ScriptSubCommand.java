@@ -79,14 +79,15 @@ public class ScriptSubCommand implements Callable<Integer> {
             required = false,
             description = "If the block size is set, CLOB and BLOB values larger than this size are split into separate blocks. "
             + "BLOCKSIZE is used when writing out LOB data, and specifies the point at the values transition from being inserted as inline values, "
-            + "to be inserted using out-of-line commands. ")
+            + "to be inserted using out-of-line commands. "
+ + "Default value: '${DEFAULT-VALUE}'")
     private Integer blocksize;
     //--- to file
     @CommandLine.Option(names = {"--to"},
             defaultValue = "backup.sql",
             paramLabel = "TO",
             required = false,
-            description = "The target script file name (default: backup.sql)")
+            description = "The target script file name, default value: '${DEFAULT-VALUE}'")
     private File toFile;
     @CommandLine.Option(names = {"--compression"},
             paramLabel = "COMPRESSION",

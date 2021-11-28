@@ -66,22 +66,22 @@ public class MainH2 implements Callable<Integer> {
     @CommandLine.Option(names = {"--user"}, defaultValue = "sa",
             paramLabel = "USER",
             required = false,
-            description = "h2 user")
+            description = "h2 user, default value: '${DEFAULT-VALUE}'")
     private String userName;
     @CommandLine.Option(names = {"--password"}, defaultValue = "",
             paramLabel = "PASSWORD",
             required = false,
-            description = "h2 password")
+            description = "h2 password, default value: '${DEFAULT-VALUE}'")
     private String password;
-    @CommandLine.Option(names = {"--url"}, defaultValue = "jdbc:h2:mem:/test1",
+    @CommandLine.Option(names = {"--url"}, defaultValue = "jdbc:h2:mem:/test",
             paramLabel = "URL",
             required = false,
-            description = "h2 jdbc URL")
+            description = "h2 jdbc URL, default value: '${DEFAULT-VALUE}'")
     private String jdbcURL;
     @CommandLine.Option(names = {"--driver"}, defaultValue = "org.h2.Driver",
             paramLabel = "DRIVER",
             required = false,
-            description = "jdbc Driver")
+            description = "jdbc Driver, default value: '${DEFAULT-VALUE}'")
     private String jdbcDriver;
 
     /**

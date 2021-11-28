@@ -69,7 +69,7 @@ public class ShowSubCommand implements Callable<Integer> {
     @CommandLine.Option(names = {"--output-format"},
             paramLabel = "OUTPUTFORMAT", defaultValue = "CSV",
             required = false,
-            description = "Output format used")
+            description = "Output format used, default value: '${DEFAULT-VALUE}'")
     private String outputFormat;
 
     @Override

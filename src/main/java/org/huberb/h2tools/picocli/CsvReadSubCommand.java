@@ -72,7 +72,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
             defaultValue = "csvread.csv",
             paramLabel = "TO",
             required = true,
-            description = "The source csv file name")
+            description = "The source csv file name, default value: '${DEFAULT-VALUE}'")
     private String from;
     @CommandLine.Option(names = {"--csv-columns"},
             paramLabel = "COLUMNS",
@@ -100,7 +100,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
             paramLabel = "OUTPUTFORMAT",
             defaultValue = "CSV",
             required = false,
-            description = "Output format used")
+            description = "Output format used, default value: '${DEFAULT-VALUE}'")
     private String outputFormat;
 
     @Override
