@@ -55,7 +55,7 @@ Commands:
 ....
 
 == Subcommand script
-Creates a SQL script file by extracting the schema and data of a database.
+Creates a SQL script file by extracting the schema and data of an h2 database.
 
 === DESCRIPTION
 ....
@@ -107,29 +107,30 @@ Creates a SQL script file by extracting the schema and data of a database.
 ....
 
 == Subcommand csvRead
-Read CSV data, and store data into a database.
+Read CSV file, and store its data into a database.
 
 === DESCRIPTION
 ....
 $ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar csvRead -h
 Usage: MainH2 csvRead [-hV] [--[no-]case-sensitive-columnnames] [--[no-]
                       write-column-header] [--[no-]preserve-whitespace]
-                      [--charset=CHARSET] [--create-table=CREATE-TABLE]
-                      [--csv-columns=COLUMNS] [--escape=ESCAPE]
-                      [--field-delimiter=FIELDDELIMITER]
-                      [--field-separator=FIELDSEPARATOR] [--from=TO]
-                      [--insert-table=INSERT-TABLE]
+                      [--charset=CHARSET] [--csv-columns=COLUMNS]
+                      [--escape=ESCAPE] [--field-delimiter=FIELDDELIMITER]
+                      [--field-separator=FIELDSEPARATOR] [--from=FROM]
                       [--line-comment=<lineComment>]
                       [--line-separator=LINESEPARATOR] [--null=NULL]
-                      [--output-format=OUTPUTFORMAT]
-Reading a CSV File from within a database.
+                      (--create-table=CREATE-TABLE |
+                      --insert-table=INSERT-TABLE |
+                      --output-format=OUTPUTFORMAT)
+Read CSV file, and store its data into a database.
       --[no-]case-sensitive-columnnames
                           use case sensitive column names
       --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1, default value:
                             'UTF-8'
                             Default: UTF-8
       --create-table=CREATE-TABLE
-
+                          create this table, and insert read CSV data into this
+                            table.
       --csv-columns=COLUMNS
                           CSV columns
       --escape=ESCAPE     the character that escapes the field delimiter,
@@ -141,11 +142,12 @@ Reading a CSV File from within a database.
       --field-separator=FIELDSEPARATOR
                           the character separating fields, default value: ','
                             Default: ,
-      --from=TO           The source csv file name, default value: 'csvread.csv'
+      --from=FROM         The source csv file name.
                             Default: csvread.csv
   -h, --help              Show this help message and exit.
       --insert-table=INSERT-TABLE
-
+                          use this table, and insert read CSV data into this
+                            table.
       --line-comment=<lineComment>
                             Default:
       --line-separator=LINESEPARATOR
@@ -161,11 +163,38 @@ Reading a CSV File from within a database.
                             value: ''
                             Default:
       --output-format=OUTPUTFORMAT
-                          Output format used, default value: 'CSV'
-                            Default: CSV
+                          Read CSV data, and show its data using the specified
+                            OUTPUT format. Valid values: RAW, CSV, JSON,
+                            JSON_ARRAYS, JSON_MAPS, YAML, TABULAR
       --[no-]preserve-whitespace
                           Preserve whitespace in values
   -V, --version           Print version information and exit.
+....
+
+=== Example A
+Read read CSV and show its read content as JSON.
+
+....
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar csvRead \
+  --from=src/main/resources/sqls/test/test_1.csv \
+  --output-format=JSON
+....
+
+Input CSV test_1.csv
+....
+"ID","NAME"
+"1","Hi"
+"2","Alice"
+"3","Bob"
+....
+
+Output JSON
+....
+[
+{"ID": "1", "NAME": "Hi"},
+{"ID": "2", "NAME": "Alice"},
+{"ID": "3", "NAME": "Bob"}
+]
 ....
 
 == Subcommand csvWrite

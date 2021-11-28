@@ -24,13 +24,13 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.huberb.h2tools.support.OutputResultSet.OutputBy;
 import org.huberb.h2tools.support.OutputResultSet.OutputMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 
 /**
  * Reading a CSV File from within a database.
@@ -60,7 +60,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "csvRead",
         mixinStandardHelpOptions = true,
         showDefaultValues = true,
-        description = "Reading a CSV File from within a database.")
+        description = "Read CSV file, and store its data into a database.")
 public class CsvReadSubCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(CsvReadSubCommand.class);
@@ -72,7 +72,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
             defaultValue = "csvread.csv",
             paramLabel = "FROM",
             required = true,
-            description = "The source csv file name, default value: '${DEFAULT-VALUE}'")
+            description = "The source csv file name.")
     private String from;
     @CommandLine.Option(names = {"--csv-columns"},
             paramLabel = "COLUMNS",
@@ -84,24 +84,30 @@ public class CsvReadSubCommand implements Callable<Integer> {
     @CommandLine.Mixin
     private CsvReadWriteOptions csvReadWriteOptions;
 
-    //---
-    @CommandLine.Option(names = {"--create-table"},
-            paramLabel = "CREATE-TABLE",
-            required = false,
-            description = "")
-    private String createTable;
-    @CommandLine.Option(names = {"--insert-table"},
-            paramLabel = "INSERT-TABLE",
-            required = false,
-            description = "")
-    private String insertTable;
-    //---
-    @CommandLine.Option(names = {"--output-format"},
-            paramLabel = "OUTPUTFORMAT",
-            defaultValue = "CSV",
-            required = false,
-            description = "Output format used, default value: '${DEFAULT-VALUE}'")
-    private String outputFormat;
+    @ArgGroup(exclusive = true, multiplicity = "1")
+    Exclusive exclusive;
+
+    static class Exclusive {
+
+        //---
+        @CommandLine.Option(names = {"--create-table"},
+                paramLabel = "CREATE-TABLE",
+                required = true,
+                description = "create this table, and insert read CSV data into this table.")
+        private String createTable;
+        @CommandLine.Option(names = {"--insert-table"},
+                paramLabel = "INSERT-TABLE",
+                required = true,
+                description = "use this table, and insert read CSV data into this table.")
+        private String insertTable;
+        //---
+        @CommandLine.Option(names = {"--output-format"},
+                paramLabel = "OUTPUTFORMAT",
+                required = true,
+                description = "Read CSV data, and show its data using the specified OUTPUT format. "
+                + "Valid values: ${COMPLETION-CANDIDATES}")
+        private OutputMode outputFormat;
+    }
 
     @Override
     public Integer call() throws Exception {
@@ -119,17 +125,17 @@ public class CsvReadSubCommand implements Callable<Integer> {
         final String theFrom = normalizeFileOrUriName(this.from);
         final String theCsvColumns = this.csvColumns != null ? "'" + this.csvColumns + "'" : null;
         final String theOptions = options != null ? "'" + options + "'" : "null";
-        if (this.createTable != null) {
+        if (this.exclusive.createTable != null) {
             String sql = String.format("CREATE TABLE %s AS SELECT * FROM CSVREAD( '%s', %s, %s)",
-                    this.createTable,
+                    this.exclusive.createTable,
                     theFrom,
                     theCsvColumns,
                     theOptions
             );
             m.put("createTable", sql);
-        } else if (this.insertTable != null) {
+        } else if (this.exclusive.insertTable != null) {
             String sql = String.format("INSERT INTO %s SELECT * FROM CSVREAD( '%s', %s, %s)",
-                    this.insertTable,
+                    this.exclusive.insertTable,
                     theFrom,
                     theCsvColumns,
                     theOptions
@@ -186,11 +192,8 @@ public class CsvReadSubCommand implements Callable<Integer> {
                     handleExecuteStatementOutput(executedRc, statement);
                 } else {
                     try (final ResultSet rs = statement.executeQuery(sql)) {
-                        final Optional<OutputMode> outputModeOptional = OutputMode.findOutputMode(this.outputFormat);
-                        if (outputModeOptional.isPresent()) {
-                            final OutputBy outputBy = OutputMode.createOutputBy(outputModeOptional.get());
-                            outputBy.output(rs, System.out);
-                        }
+                        final OutputBy outputBy = OutputMode.createOutputBy(this.exclusive.outputFormat);
+                        outputBy.output(rs, System.out);
                     }
                 }
             }
