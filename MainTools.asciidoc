@@ -39,7 +39,7 @@ jdbc:h2:..;TRACE_LEVEL_FILE=3 log to *.trace.db
   -V, --version          Print version information and exit.
 ....
 
-== Available Commands
+== Available Tools
 
 Following toolName values are available.
 

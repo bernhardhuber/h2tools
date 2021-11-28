@@ -70,7 +70,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
     //--- to file
     @CommandLine.Option(names = {"--from"},
             defaultValue = "csvread.csv",
-            paramLabel = "TO",
+            paramLabel = "FROM",
             required = true,
             description = "The source csv file name, default value: '${DEFAULT-VALUE}'")
     private String from;
