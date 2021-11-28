@@ -7,7 +7,7 @@ Commandline tools using h2 database.
 
 
 * [MainH2](MainH2.md)
-* [MainTools](MainTools.md)
+* [MainTools](MainTools.asciidoc)
 
 # References
 

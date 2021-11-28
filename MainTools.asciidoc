@@ -1,4 +1,6 @@
 = MainTools
+Run h2 tools.
+:TOC:
 
 == SYNOPSIS
 
