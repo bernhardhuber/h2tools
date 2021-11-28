@@ -65,8 +65,9 @@ public class CsvReadSubCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(CsvReadSubCommand.class);
 
+    // picocli injects reference to parent command
     @CommandLine.ParentCommand
-    private MainH2 mainH2; // picocli injects reference to parent command
+    private MainH2 mainH2;
     //--- to file
     @CommandLine.Option(names = {"--from"},
             defaultValue = "csvread.csv",
@@ -163,7 +164,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
     String normalizeFileOrUriName(String n) {
         String result = null;
         try {
-            URI uri = URI.create(n);
+            final URI uri = URI.create(n);
             if (uri.getScheme() != null) {
                 result = uri.toString();
             }
@@ -171,7 +172,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
             result = null;
         }
         if (result == null) {
-            File f = new File(n);
+            final File f = new File(n);
             result = f.getAbsolutePath();
         }
 
