@@ -6,8 +6,8 @@ Commandline tools using h2 database.
 [![Java CI with Maven](https://github.com/bernhardhuber/h2tools/actions/workflows/maven.yml/badge.svg)](https://github.com/bernhardhuber/h2tools/actions/workflows/maven.yml)
 
 
-* (MainH2)[MainH2.md]
-* (MainTools)[MainTools.md]
+* [MainH2](MainH2.md)
+* [MainTools](MainTools.md)
 
 # References
 
