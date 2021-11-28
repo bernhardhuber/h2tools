@@ -1,6 +1,7 @@
 # MainTools
 
 ## SYNOPSIS
+
 ```
 MainTools [-hV] [@<filename>...] [<toolName>]
 ```
@@ -38,7 +39,7 @@ jdbc:h2:..;TRACE_LEVEL_FILE=3 log to *.trace.db
 
 ## Available Commands
 
-Following toolName are available.
+Following toolName values are available.
 
 ### Backup
 
@@ -220,6 +221,8 @@ See also https://h2database.com/javadoc/org/h2/tools/Restore.html
 
 Runs a SQL script against a database.
 
+#### DESCRIPTION
+
 ```
 Runs a SQL script against a database.
 Usage: java org.h2.tools.RunScript <options>
@@ -237,12 +240,49 @@ Options are case sensitive. Supported options are:
 See also https://h2database.com/javadoc/org/h2/tools/RunScript.html
 ```
 
+#### Example A
+
+```
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainTools.jar RunScript \
+  -url jdbc:h2:tcp://localhost:9093/test1 \
+  -user sa1 -password sa1 \
+  -script run_script1.sql \
+  -showResults
+```
+
+Generated output of running *RunScript*:
+
+```
+select * from TEST;
+--> 1 Hi
+;
+```
+
+
+Content of *run_script.sql* file used in running *RunScript*:
+
+```
+select * from TEST;
+```
+
+
+#### SQL Command
+
+The equivalent SQL command:
+
+```
+RUNSCRIPT FROM fileNameString scriptCompressionEncryption
+[ CHARSET charsetString ]
+```
+
 ### Script
 
 * toolname *Script*
 * class org.h2.tools.Script
 
 Creates a SQL script file by extracting the schema and data of a database.
+
+#### DESCRIPTION
 
 ```
 $ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainTools.jar Script -?
@@ -258,6 +298,64 @@ Options are case sensitive. Supported options are:
 [-quiet]           Do not print progress information
 See also https://h2database.com/javadoc/org/h2/tools/Script.html
 ```
+
+#### OPTIONS
+
+Following options value are supported:
+
+```
+[ NODATA ] | [ SIMPLE ] [ COLUMNS ]
+[ NOPASSWORDS ] [ NOSETTINGS ]
+[ DROP ] [ BLOCKSIZE blockSizeInt ]
+[ TABLE tableName [, ...] ]
+[ SCHEMA schemaName [, ...] ]
+```
+
+#### Example A
+
+Extract data definition and data of table `TEST`.
+
+```
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainTools.jar Script \
+  -url jdbc:h2:tcp://localhost:9093/test1 \
+  -user sa1 -password sa1 \
+  -script test1_backup.sql \
+  -options NOPASSWORDS DROP TABLE TEST
+```
+
+Content of generated `test1_backup.sql`:
+
+```
+;
+CREATE USER IF NOT EXISTS "SA1" PASSWORD '' ADMIN;
+DROP TABLE IF EXISTS "PUBLIC"."TEST" CASCADE;
+CREATE SEQUENCE "PUBLIC"."BUG_ENTITY_SEQ" START WITH 4 BELONGS_TO_TABLE;
+CREATE SEQUENCE "PUBLIC"."BUG_CONFIG_ENTITY_SEQ" START WITH 1 BELONGS_TO_TABLE;
+CREATE CACHED TABLE "PUBLIC"."TEST"(
+    "ID" INT NOT NULL,
+    "NAME" VARCHAR(255)
+);
+ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+-- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+INSERT INTO "PUBLIC"."TEST" VALUES
+(1, 'Hi');
+```
+
+
+#### SQL Command
+
+The equivalent SQL command:
+
+```
+SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
+[ NOPASSWORDS ] [ NOSETTINGS ]
+[ DROP ] [ BLOCKSIZE blockSizeInt ]
+[ TO fileNameString scriptCompressionEncryption
+    [ CHARSET charsetString ] ]
+[ TABLE tableName [, ...] ]
+[ SCHEMA schemaName [, ...] ]
+```
+
 
 ### Server
 
@@ -310,6 +408,8 @@ See also https://h2database.com/javadoc/org/h2/tools/Server.html
 
 Interactive command line tool to access a database using JDBC.
 
+#### DESCRIPTION
+
 ```
 $ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainTools.jar Shell -?
 Interactive command line tool to access a database using JDBC.
@@ -327,6 +427,19 @@ If special characters don't work as expected, you may need to use
 See also https://h2database.com/javadoc/org/h2/tools/Shell.html
 ```
 
-## Examples
+#### Example A
 
+```
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainTools.jar Shell \
+   -url jdbc:h2:tcp://localhost:9093/test1 \
+   -user sa1 -password sa1 \
+   -sql "SELECT * from TEST"
+```
 
+Generated output of running *Shell*:
+
+```
+ID | NAME
+1  | Hi
+(1 row, 13 ms)
+```
