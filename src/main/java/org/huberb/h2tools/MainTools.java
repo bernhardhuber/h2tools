@@ -15,6 +15,7 @@
  */
 package org.huberb.h2tools;
 
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Spec;
 
 /**
  * Simple ueber-jar main-class. Invokes main-classes of org.h2.tools.*.
@@ -80,6 +83,8 @@ public class MainTools implements Callable<Integer> {
         final int exitCode = commandLine.execute(args);
         System.exit(exitCode);
     }
+    @Spec
+    private CommandSpec spec;
 
     @Parameters(arity = "0..1",
             index = "0",
@@ -106,30 +111,35 @@ public class MainTools implements Callable<Integer> {
      */
     @Override
     public Integer call() throws Exception {
-        final List<String> toolOptions = commandLine.getUnmatchedArguments();
-        final List<String> argsAsList = toolOptions == null
-                ? Collections.emptyList()
-                : toolOptions;
-        final String[] args = argsAsList.toArray(new String[argsAsList.size()]);
-        //---
-        if (toolName == null) {
-            loggerInfo("Missing command ");
-            printAvailableClasses();
-            return -1;
+        try {
+            final List<String> toolOptions = commandLine.getUnmatchedArguments();
+            final List<String> argsAsList = toolOptions == null
+                    ? Collections.emptyList()
+                    : toolOptions;
+            final String[] args = argsAsList.toArray(new String[argsAsList.size()]);
+            //---
+            if (toolName == null) {
+                loggerInfo("Missing command ");
+                printAvailableClasses();
+                return -1;
+            }
+            final String command = toolName;
+            final String[] argsRemaining = args;
+            final Optional<Class<? extends Tool>> mClassOptional = mainToolRegistry.findGetOrDefault(command);
+            if (mClassOptional.isPresent()) {
+                final Class<? extends Tool> mClass = mClassOptional.get();
+                final Method method = mClass.getMethod("main", String[].class);
+                method.invoke(null, (Object) argsRemaining);
+            } else {
+                loggerInfo("Undefined command `%s'", command);
+                printAvailableClasses();
+                return -1;
+            }
+            return 0;
+        } finally {
+            this.spec.commandLine().getOut().flush();
+            this.spec.commandLine().getErr().flush();
         }
-        final String command = toolName;
-        final String[] argsRemaining = args;
-        final Optional<Class<? extends Tool>> mClassOptional = mainToolRegistry.findGetOrDefault(command);
-        if (mClassOptional.isPresent()) {
-            final Class<? extends Tool> mClass = mClassOptional.get();
-            final Method method = mClass.getMethod("main", String[].class);
-            method.invoke(null, (Object) argsRemaining);
-        } else {
-            loggerInfo("Undefined command `%s'", command);
-            printAvailableClasses();
-            return -1;
-        }
-        return 0;
     }
 
     void printAvailableClasses() {
@@ -145,9 +155,15 @@ public class MainTools implements Callable<Integer> {
         loggerInfo(str);
     }
 
+    /**
+     * Use picocli error print writer for printing to stderr.
+     *
+     * @param str
+     */
     void loggerInfo(String fmt, Object... args) {
-        final String m = String.format(fmt, args);
-        logger.info(m);
+        final String str = String.format(fmt, args);
+        final PrintWriter pw = spec.commandLine().getOut();
+        pw.println(str);
     }
 
 }

@@ -56,18 +56,18 @@ public class MainH2Test {
         final int exitCode = cmd.execute(helpOption);
         assertEquals(0, exitCode);
         assertEquals("", swErr.toString(), "stderr");
-        final String swErrAsString = swOut.toString();
-        final String m = String.format("stdout helpOption %s, stderr: %s", helpOption, swErrAsString);
-        assertNotEquals(0, swErrAsString, m);
-        assertTrue(swErrAsString.contains("Usage:"), m);
-        assertTrue(swErrAsString.contains("script"), m);
-        assertTrue(swErrAsString.contains("csvRead"), m);
-        assertTrue(swErrAsString.contains("csvWrite"), m);
-        assertTrue(swErrAsString.contains("show"), m);
-        assertTrue(swErrAsString.contains("-h"), m);
-        assertTrue(swErrAsString.contains("--help"), m);
-        assertTrue(swErrAsString.contains("-V"), m);
-        assertTrue(swErrAsString.contains("--version"), m);
+        final String swOutAsString = swOut.toString();
+        final String m = String.format("stdout helpOption %s, stdout: %s", helpOption, swOutAsString);
+        assertNotEquals(0, swOutAsString, m);
+        assertTrue(swOutAsString.contains("Usage:"), m);
+        assertTrue(swOutAsString.contains("script"), m);
+        assertTrue(swOutAsString.contains("csvRead"), m);
+        assertTrue(swOutAsString.contains("csvWrite"), m);
+        assertTrue(swOutAsString.contains("show"), m);
+        assertTrue(swOutAsString.contains("-h"), m);
+        assertTrue(swOutAsString.contains("--help"), m);
+        assertTrue(swOutAsString.contains("-V"), m);
+        assertTrue(swOutAsString.contains("--version"), m);
     }
 
     @ParameterizedTest
@@ -77,9 +77,9 @@ public class MainH2Test {
         final int exitCode = cmd.execute(versionOption);
         assertEquals(0, exitCode);
         assertEquals("", swErr.toString(), "stderr");
-        final String swErrAsString = swOut.toString();
-        final String m = String.format("stdout versionOption %s, stderr: %s", versionOption, swErrAsString);
-        assertNotEquals(0, swErrAsString, m);
-        assertTrue(swErrAsString.contains("MainH2"), m);
+        final String swOutAsString = swOut.toString();
+        final String m = String.format("stdout versionOption %s, stdout: %s", versionOption, swOutAsString);
+        assertNotEquals(0, swOutAsString, m);
+        assertTrue(swOutAsString.contains("MainH2"), m);
     }
 }

@@ -17,10 +17,12 @@ package org.huberb.h2tools;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import picocli.CommandLine;
@@ -56,15 +58,15 @@ public class MainToolsTest {
         final int exitCode = cmd.execute(helpOption);
         assertEquals(0, exitCode);
         assertEquals("", swErr.toString(), "stderr");
-        final String swErrAsString = swOut.toString();
-        final String m = String.format("stdout helpOption %s, stderr: %s", helpOption, swErrAsString);
-        assertNotEquals(0, swErrAsString, m);
-        assertTrue(swErrAsString.contains("Usage:"), m);
-        assertTrue(swErrAsString.contains("toolName"), m);
-        assertTrue(swErrAsString.contains("-h"), m);
-        assertTrue(swErrAsString.contains("--help"), m);
-        assertTrue(swErrAsString.contains("-V"), m);
-        assertTrue(swErrAsString.contains("--version"), m);
+        final String swOutAsString = swOut.toString();
+        final String m = String.format("stdout helpOption %s, stdout: %s", helpOption, swOutAsString);
+        assertNotEquals(0, swOutAsString, m);
+        assertTrue(swOutAsString.contains("Usage:"), m);
+        assertTrue(swOutAsString.contains("toolName"), m);
+        assertTrue(swOutAsString.contains("-h"), m);
+        assertTrue(swOutAsString.contains("--help"), m);
+        assertTrue(swOutAsString.contains("-V"), m);
+        assertTrue(swOutAsString.contains("--version"), m);
     }
 
     @ParameterizedTest
@@ -74,9 +76,44 @@ public class MainToolsTest {
         final int exitCode = cmd.execute(versionOption);
         assertEquals(0, exitCode);
         assertEquals("", swErr.toString(), "stderr");
-        final String swErrAsString = swOut.toString();
-        final String m = String.format("stdout versionOption %s, stderr: %s", versionOption, swErrAsString);
-        assertNotEquals(0, swErrAsString, m);
-        assertTrue(swErrAsString.contains("MainTools"), m);
+        final String swOutAsString = swOut.toString();
+        final String m = String.format("stdout versionOption %s, stdout: %s", versionOption, swOutAsString);
+        assertNotEquals(0, swOutAsString, m);
+        assertTrue(swOutAsString.contains("MainTools"), m);
+    }
+
+    @Test
+    public void testCommandLine_tools() {
+        //---
+        cmd.setStopAtPositional(true);
+        cmd.setStopAtUnmatched(true);
+        app.registerCommandLine(cmd);
+
+        //---
+        String emptyOption = "";
+        final int exitCode = cmd.execute(emptyOption);
+        assertEquals(-1, exitCode);
+        assertEquals("", swErr.toString(), "stderr");
+        final String swOutAsString = swOut.toString();
+        final String m = String.format("stdout option %s, stdout: %s", emptyOption, swOutAsString);
+        assertNotEquals(0, swOutAsString, m);
+
+        for (String s : Arrays.asList(
+                "Backup",
+                "ChangeFileEncryption",
+                "Console",
+                "ConvertTraceFile",
+                "CreateCluster",
+                "DeleteDbFiles",
+                "Recover",
+                "Restore",
+                "RunScript",
+                "Script",
+                "Server",
+                "Shell"
+        )) {
+            final String m2 = String.format("Expecting: %s in stdout output: %s", s, m);
+            assertTrue(swOutAsString.contains(s), m2);
+        }
     }
 }
