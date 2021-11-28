@@ -96,6 +96,9 @@ public class OutputResultSet {
 
     }
 
+    /**
+     * Output in plain ASCII format
+     */
     static class OutputByRaw implements OutputBy {
 
         @Override
@@ -113,6 +116,9 @@ public class OutputResultSet {
         }
     }
 
+    /**
+     * Output in CSV format
+     */
     static class OutputByCsv implements OutputBy {
 
         @Override
@@ -126,6 +132,9 @@ public class OutputResultSet {
         }
     }
 
+    /**
+     * Output as array of maps in JSON format
+     */
     static class OutputByJson implements OutputBy {
 
         @Override
@@ -138,7 +147,6 @@ public class OutputResultSet {
 
             final String jsonEnd = "\n]\n";
             out.print(jsonEnd);
-
         }
 
         static class TabularMapArrayOfMapsConsumer implements Consumer<Map<String, String>> {
@@ -153,11 +161,11 @@ public class OutputResultSet {
             @Override
             public void accept(Map<String, String> m) {
                 final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> mapEntry) -> {
-                    final String keyValueAsYaml = String.format("\"%s\": \"%s\"",
+                    final String keyValueAsJson = String.format("\"%s\": \"%s\"",
                             encodeJson(mapEntry.getKey()),
                             encodeJson(mapEntry.getValue())
                     );
-                    return keyValueAsYaml;
+                    return keyValueAsJson;
                 };
 
                 final StringBuilder sb = new StringBuilder();
@@ -178,6 +186,9 @@ public class OutputResultSet {
         }
     }
 
+    /**
+     * Output as array of arrays in JSON format
+     */
     static class OutputByArrayOfArraysJson implements OutputBy {
 
         @Override
@@ -232,6 +243,9 @@ public class OutputResultSet {
         }
     }
 
+    /**
+     * Output in YAML format
+     */
     static class OutputByYaml implements OutputBy {
 
         @Override
@@ -287,6 +301,9 @@ public class OutputResultSet {
 
     }
 
+    /**
+     * Output in tabular format
+     */
     static class OutputByTabular implements OutputBy {
 
         @Override
@@ -329,7 +346,6 @@ public class OutputResultSet {
                 while (rs.next()) {
                     c.accept(rs);
                 }
-
             } catch (SQLException sqlex) {
                 throw new ResultSetProcessingRuntimeException("iterate", sqlex);
             }
@@ -352,7 +368,6 @@ public class OutputResultSet {
                         m.put(meta.getColumnLabel(i + 1), rs.getString(i + 1));
                     }
                     c.accept(m);
-
                 } catch (SQLException ex) {
                     throw new ResultSetProcessingRuntimeException("accept single ResultSet", ex);
                 }

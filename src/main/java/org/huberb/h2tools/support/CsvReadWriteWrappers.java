@@ -37,6 +37,9 @@ import org.h2.tools.Csv;
  */
 public class CsvReadWriteWrappers {
 
+    /**
+     * Write CSV.
+     */
     static class CsvWriter implements AutoCloseable {
 
         final Writer writer;
@@ -84,6 +87,9 @@ public class CsvReadWriteWrappers {
             }
         }
 
+        /**
+         * Factory creating a {@link CsvWriter}.
+         */
         static class CsvWriterFactory {
 
             CsvWriter create(String outFilename, Map<String, String> options) throws CsvReaderWriteWrappersRuntimeException {
@@ -100,6 +106,9 @@ public class CsvReadWriteWrappers {
         }
     }
 
+    /**
+     * Read CSV.
+     */
     static class CsvReader implements AutoCloseable {
 
         final Reader reader;
@@ -132,6 +141,9 @@ public class CsvReadWriteWrappers {
             }
         }
 
+        /**
+         * Default CSV reader consumer.
+         */
         static class DefaultCsvReaderConsumer implements Consumer<ResultSet> {
 
             final BiConsumer<String, String> bic;
@@ -156,9 +168,11 @@ public class CsvReadWriteWrappers {
                     throw new CsvReaderWriteWrappersRuntimeException("Accepting resultSet", sqlex);
                 }
             }
-
         }
 
+        /**
+         * Factory creating a {@link CsvReader}.
+         */
         static class CsvReaderFactory {
 
             CsvReader create(String inFilename, Map<String, String> options, String[] colNames) throws IOException {
@@ -172,6 +186,9 @@ public class CsvReadWriteWrappers {
 
     }
 
+    /**
+     * Exception throwing by {@link CsvWriter}, and {@link CsvReader}.
+     */
     static class CsvReaderWriteWrappersRuntimeException extends RuntimeException {
 
         CsvReaderWriteWrappersRuntimeException(String message, SQLException sqlException) {
@@ -181,6 +198,5 @@ public class CsvReadWriteWrappers {
         CsvReaderWriteWrappersRuntimeException(String message, IOException ioException) {
             super(message, ioException);
         }
-
     }
 }
