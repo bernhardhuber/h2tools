@@ -15,9 +15,12 @@
  */
 package org.huberb.h2tools;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,8 +38,8 @@ public class MainToolsTest {
 
     MainTools app;
     CommandLine cmd;
-    StringWriter swOut;
     StringWriter swErr;
+    StringWriter swOut;
 
     @BeforeEach
     public void setUp() {
@@ -51,22 +54,33 @@ public class MainToolsTest {
         //---
     }
 
+    @AfterEach
+    public void teardDown() throws IOException {
+        swErr.close();
+        swOut.close();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"--help", "-h"})
     public void testCommandLine_help(String helpOption) {
         //---
         final int exitCode = cmd.execute(helpOption);
         assertEquals(0, exitCode);
-        assertEquals("", swErr.toString(), "stderr");
-        final String swOutAsString = swOut.toString();
-        final String m = String.format("stdout helpOption %s, stdout: %s", helpOption, swOutAsString);
-        assertNotEquals(0, swOutAsString, m);
-        assertTrue(swOutAsString.contains("Usage:"), m);
-        assertTrue(swOutAsString.contains("toolName"), m);
-        assertTrue(swOutAsString.contains("-h"), m);
-        assertTrue(swOutAsString.contains("--help"), m);
-        assertTrue(swOutAsString.contains("-V"), m);
-        assertTrue(swOutAsString.contains("--version"), m);
+        {
+            assertEquals("", swErr.toString(), "stderr");
+        }
+        {
+            final String swOutAsString = swOut.toString();
+            final String m = String.format("stdout helpOption %s, stdout: %s", helpOption, swOutAsString);
+            assertNotEquals(0, swOutAsString, m);
+            assertAll(
+                    () -> assertTrue(swOutAsString.contains("Usage:"), m),
+                    () -> assertTrue(swOutAsString.contains("toolName"), m),
+                    () -> assertTrue(swOutAsString.contains("-h"), m),
+                    () -> assertTrue(swOutAsString.contains("--help"), m),
+                    () -> assertTrue(swOutAsString.contains("-V"), m),
+                    () -> assertTrue(swOutAsString.contains("--version"), m));
+        }
     }
 
     @ParameterizedTest
@@ -75,11 +89,15 @@ public class MainToolsTest {
         //---
         final int exitCode = cmd.execute(versionOption);
         assertEquals(0, exitCode);
-        assertEquals("", swErr.toString(), "stderr");
-        final String swOutAsString = swOut.toString();
-        final String m = String.format("stdout versionOption %s, stdout: %s", versionOption, swOutAsString);
-        assertNotEquals(0, swOutAsString, m);
-        assertTrue(swOutAsString.contains("MainTools"), m);
+        {
+            assertEquals("", swErr.toString(), "stderr");
+        }
+        {
+            final String swOutAsString = swOut.toString();
+            final String m = String.format("stdout versionOption %s, stdout: %s", versionOption, swOutAsString);
+            assertNotEquals(0, swOutAsString, m);
+            assertTrue(swOutAsString.contains("MainTools"), m);
+        }
     }
 
     @Test
@@ -93,27 +111,30 @@ public class MainToolsTest {
         String emptyOption = "";
         final int exitCode = cmd.execute(emptyOption);
         assertEquals(-1, exitCode);
-        assertEquals("", swErr.toString(), "stderr");
-        final String swOutAsString = swOut.toString();
-        final String m = String.format("stdout option %s, stdout: %s", emptyOption, swOutAsString);
-        assertNotEquals(0, swOutAsString, m);
+        {
+            assertEquals("", swErr.toString(), "stderr");
+        }
+        {
+            final String swOutAsString = swOut.toString();
+            final String m = String.format("stdout option %s, stdout: %s", emptyOption, swOutAsString);
+            assertNotEquals(0, swOutAsString, m);
 
-        for (String s : Arrays.asList(
-                "Backup",
-                "ChangeFileEncryption",
-                "Console",
-                "ConvertTraceFile",
-                "CreateCluster",
-                "DeleteDbFiles",
-                "Recover",
-                "Restore",
-                "RunScript",
-                "Script",
-                "Server",
-                "Shell"
-        )) {
-            final String m2 = String.format("Expecting: %s in stdout output: %s", s, m);
-            assertTrue(swOutAsString.contains(s), m2);
+            Arrays.asList(
+                    "Backup",
+                    "ChangeFileEncryption",
+                    "Console",
+                    "ConvertTraceFile",
+                    "CreateCluster",
+                    "DeleteDbFiles",
+                    "Recover",
+                    "Restore",
+                    "RunScript",
+                    "Script",
+                    "Server",
+                    "Shell").forEach((final String s) -> {
+                        final String m2 = String.format("Expecting: %s in stdout output: %s", s, m);
+                        assertTrue(swOutAsString.contains(s), m2);
+                    });
         }
     }
 }
