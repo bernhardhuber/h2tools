@@ -50,8 +50,9 @@ public class CsvWriteSubCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(CsvWriteSubCommand.class);
 
+    // picocli injects reference to parent command
     @CommandLine.ParentCommand
-    private MainH2 mainH2; // picocli injects reference to parent command
+    private MainH2 mainH2;
     //--- to file
     @CommandLine.Option(names = {"--to"},
             defaultValue = "csvwrite.csv",
@@ -64,7 +65,7 @@ public class CsvWriteSubCommand implements Callable<Integer> {
             required = true,
             description = "The query string to extract data")
     private String query;
-    
+
     //---
     @CommandLine.Mixin
     private CsvReadWriteOptions csvReadWriteOptions;
@@ -107,7 +108,7 @@ public class CsvWriteSubCommand implements Callable<Integer> {
         }
     }
 
-    String buildSql(List<String> args) {
+    private String buildSql(List<String> args) {
         final String theToFile = args.get(0);
         final String theQuery = args.get(1);
         final String theCsvOptions = args.get(2);
@@ -115,7 +116,7 @@ public class CsvWriteSubCommand implements Callable<Integer> {
         return sql;
     }
 
-    void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
+    private void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
         logger.info("Executed rc {}", executedRc);
         if (executedRc) {
             logger.info("Executed rc {}", executedRc);

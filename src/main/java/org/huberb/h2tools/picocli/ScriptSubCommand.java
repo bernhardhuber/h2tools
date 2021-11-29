@@ -41,8 +41,9 @@ public class ScriptSubCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptSubCommand.class);
 
+    // picocli injects reference to parent command
     @CommandLine.ParentCommand
-    private MainH2 mainH2; // picocli injects reference to parent command
+    private MainH2 mainH2;
     //---
     @CommandLine.Option(names = {"--nodata"},
             required = false,
@@ -80,7 +81,7 @@ public class ScriptSubCommand implements Callable<Integer> {
             description = "If the block size is set, CLOB and BLOB values larger than this size are split into separate blocks. "
             + "BLOCKSIZE is used when writing out LOB data, and specifies the point at the values transition from being inserted as inline values, "
             + "to be inserted using out-of-line commands. "
- + "Default value: '${DEFAULT-VALUE}'")
+            + "Default value: '${DEFAULT-VALUE}'")
     private Integer blocksize;
     //--- to file
     @CommandLine.Option(names = {"--to"},
@@ -212,7 +213,7 @@ public class ScriptSubCommand implements Callable<Integer> {
         return sb.toString();
     }
 
-    void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
+    private void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
         logger.info("Executed rc {}", executedRc);
         if (executedRc) {
             logger.info("Executed rc {}", executedRc);

@@ -43,14 +43,14 @@ import picocli.CommandLine.ArgGroup;
 //
 //SELECT * FROM CSVREAD('test.csv');
 //
-//Please note for performance reason, CSVREAD should not be used inside a join. 
-//Instead, import the data first (possibly into a temporary table), 
+//Please note for performance reason, CSVREAD should not be used inside a join.
+//Instead, import the data first (possibly into a temporary table),
 //create the required indexes if necessary, and then query this table.
 //Importing Data from a CSV File
 //
-//A fast way to load or import data (sometimes called 'bulk load') 
-//from a CSV file is to combine table creation with import. 
-//Optionally, the column names and data types can be set when creating the table. 
+//A fast way to load or import data (sometimes called 'bulk load')
+//from a CSV file is to combine table creation with import.
+//Optionally, the column names and data types can be set when creating the table.
 //Another option is to use INSERT INTO ... SELECT.
 //
 //CREATE TABLE TEST AS SELECT * FROM CSVREAD('test.csv');

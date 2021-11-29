@@ -43,8 +43,9 @@ public class ShowSubCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ShowSubCommand.class);
 
+    // picocli injects reference to parent command
     @CommandLine.ParentCommand
-    private MainH2 mainH2; // picocli injects reference to parent command
+    private MainH2 mainH2;
     //---
     @CommandLine.Option(names = {"--schemas"},
             required = false,
@@ -58,6 +59,7 @@ public class ShowSubCommand implements Callable<Integer> {
             required = false,
             description = "Show columns")
     private boolean columns;
+    //---
     @CommandLine.Option(names = {"--from-schema"},
             paramLabel = "SCHEMA", required = false,
             description = "Show from a schema")
@@ -131,7 +133,7 @@ public class ShowSubCommand implements Callable<Integer> {
         }
     }
 
-    String buildSql(List<String> args) {
+    private String buildSql(List<String> args) {
         final String argsAsString = args.stream().collect(Collectors.joining(" "));
         final String sql = String.format("SHOW %s", argsAsString);
         return sql;
