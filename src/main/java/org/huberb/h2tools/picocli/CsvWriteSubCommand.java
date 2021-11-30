@@ -58,7 +58,7 @@ public class CsvWriteSubCommand implements Callable<Integer> {
             defaultValue = "csvwrite.csv",
             paramLabel = "TO",
             required = true,
-            description = "The target csv file name, default value: '${DEFAULT-VALUE}'")
+            description = "The target csv file name")
     private File toFile;
     @CommandLine.Option(names = {"--query"},
             paramLabel = "QUERY",

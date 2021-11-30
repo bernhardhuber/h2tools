@@ -35,25 +35,25 @@ public class CsvReadWriteOptions {
             defaultValue = "UTF-8",
             paramLabel = "CHARSET",
             required = false,
-            description = "csv charset, eg UTF-8, ISO-8859-1, default value: '${DEFAULT-VALUE}'")
+            description = "csv charset, eg UTF-8, ISO-8859-1")
     private String charset; // (for example 'UTF-8'),
     @CommandLine.Option(names = {"--escape"},
             defaultValue = "\"",
             paramLabel = "ESCAPE",
             required = false,
-            description = "the character that escapes the field delimiter, default value: '${DEFAULT-VALUE}'")
+            description = "the character that escapes the field delimiter")
     private String escape; // (the character that escapes the field delimiter),
     @CommandLine.Option(names = {"--field-delimiter"},
             defaultValue = "\"",
             paramLabel = "FIELDDELIMITER",
             required = false,
-            description = "the character enclosing a field, default value: '${DEFAULT-VALUE}'")
+            description = "the character enclosing a field")
     private String fieldDelimiter; // (a double quote by default),
     @CommandLine.Option(names = {"--field-separator"},
             defaultValue = ",",
             paramLabel = "FIELDSEPARATOR",
             required = false,
-            description = "the character separating fields, default value: '${DEFAULT-VALUE}'")
+            description = "the character separating fields")
     private String fieldSeparator; // (a comma by default),
     @CommandLine.Option(names = {"--line-comment"},
             defaultValue = "",
@@ -70,8 +70,8 @@ public class CsvReadWriteOptions {
             paramLabel = "NULL",
             required = false,
             description = "Support reading existing CSV files that contain explicit null delimiters. "
- + "Note that an empty, unquoted values are also treated as null. "
- + "Default value: '${DEFAULT-VALUE}'")
+            + "Note that an empty, unquoted values are also treated as null. "
+            + "Default value: '${DEFAULT-VALUE}'")
     private String null_; //, Support reading existing CSV files that contain explicit null delimiters. Note that an empty, unquoted values are also treated as null.
     @CommandLine.Option(names = {"--preserve-whitespace"},
             negatable = true,

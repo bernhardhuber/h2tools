@@ -63,30 +63,34 @@ public class MainH2 implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(MainH2.class);
 
-    @CommandLine.Option(names = {"--user"}, defaultValue = "sa",
+    @CommandLine.Option(names = {"--user"},
+            defaultValue = "sa",
             paramLabel = "USER",
             required = false,
-            description = "h2 user, default value: '${DEFAULT-VALUE}'")
+            description = "h2 user")
     private String userName;
-    @CommandLine.Option(names = {"--password"}, defaultValue = "",
+    @CommandLine.Option(names = {"--password"},
+            defaultValue = "",
             paramLabel = "PASSWORD",
             required = false,
-            description = "h2 password, default value: '${DEFAULT-VALUE}'")
+            description = "h2 password")
     private String password;
-    @CommandLine.Option(names = {"--url"}, defaultValue = "jdbc:h2:mem:/test",
+    @CommandLine.Option(names = {"--url"},
+            defaultValue = "jdbc:h2:mem:/test",
             paramLabel = "URL",
             required = false,
-            description = "h2 jdbc URL, default value: '${DEFAULT-VALUE}'")
+            description = "h2 jdbc URL")
     private String jdbcURL;
-    @CommandLine.Option(names = {"--driver"}, defaultValue = "org.h2.Driver",
+    @CommandLine.Option(names = {"--driver"},
+            defaultValue = "org.h2.Driver",
             paramLabel = "DRIVER",
             required = false,
-            description = "jdbc Driver, default value: '${DEFAULT-VALUE}'")
+            description = "jdbc Driver")
     private String jdbcDriver;
 
     /**
      * application main entry point.
-     * 
+     *
      * @param args command line arguments
      */
     public static void main(String[] args) {

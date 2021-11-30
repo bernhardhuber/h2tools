@@ -88,7 +88,7 @@ public class ScriptSubCommand implements Callable<Integer> {
             defaultValue = "backup.sql",
             paramLabel = "TO",
             required = false,
-            description = "The target script file name, default value: '${DEFAULT-VALUE}'")
+            description = "The target script file name")
     private File toFile;
     @CommandLine.Option(names = {"--compression"},
             paramLabel = "COMPRESSION",

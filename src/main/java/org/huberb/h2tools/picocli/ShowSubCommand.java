@@ -21,7 +21,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.huberb.h2tools.support.OutputResultSet.OutputBy;
@@ -29,6 +28,7 @@ import org.huberb.h2tools.support.OutputResultSet.OutputMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 
 /**
  * Lists the schemas, tables, or the columns of a table.
@@ -47,32 +47,42 @@ public class ShowSubCommand implements Callable<Integer> {
     @CommandLine.ParentCommand
     private MainH2 mainH2;
     //---
-    @CommandLine.Option(names = {"--schemas"},
-            required = false,
-            description = "Show schemas")
-    private boolean schemas;
-    @CommandLine.Option(names = {"--tables"},
-            required = false,
-            description = "Show tables")
-    private boolean tables;
-    @CommandLine.Option(names = {"--columns"},
-            required = false,
-            description = "Show columns")
-    private boolean columns;
+    @ArgGroup(exclusive = true, multiplicity = "1")
+    Exclusive exclusive;
+
+    static class Exclusive {
+
+        @CommandLine.Option(names = {"--schemas"},
+                required = true,
+                description = "Show schemas")
+        private boolean schemas;
+        @CommandLine.Option(names = {"--tables"},
+                required = true,
+                description = "Show tables")
+        private boolean tables;
+        @CommandLine.Option(names = {"--columns"},
+                required = true,
+                description = "Show columns")
+        private boolean columns;
+    }
     //---
     @CommandLine.Option(names = {"--from-schema"},
-            paramLabel = "SCHEMA", required = false,
+            paramLabel = "SCHEMA",
+            required = false,
             description = "Show from a schema")
     private String fromASchema;
     @CommandLine.Option(names = {"--from-table"},
-            paramLabel = "TABLE", required = false,
+            paramLabel = "TABLE",
+            required = false,
             description = "Show from a table")
     private String fromATable;
     @CommandLine.Option(names = {"--output-format"},
-            paramLabel = "OUTPUTFORMAT", defaultValue = "CSV",
+            paramLabel = "OUTPUTFORMAT",
+            defaultValue = "CSV",
             required = false,
-            description = "Output format used, default value: '${DEFAULT-VALUE}'")
-    private String outputFormat;
+            description = "Output format used."
+            + "Valid values: ${COMPLETION-CANDIDATES}")
+    private OutputMode outputFormat;
 
     @Override
     public Integer call() throws Exception {
@@ -85,21 +95,22 @@ public class ShowSubCommand implements Callable<Integer> {
 
     private List<String> convertOptionsToArgs() {
         final List<String> argsAsList = new ArrayList<>();
-        if (this.schemas) {
+        if (this.exclusive.schemas) {
             argsAsList.add("SCHEMAS");
-        } else if (this.tables) {
+        } else if (this.exclusive.tables) {
             argsAsList.add("TABLES");
-        } else if (this.columns) {
+        } else if (this.exclusive.columns) {
             argsAsList.add("COLUMNS");
         } else {
             argsAsList.add("SCHEMAS");
         }
-        if (this.tables) {
+
+        if (this.exclusive.tables) {
             if (this.fromASchema != null) {
                 argsAsList.add("FROM");
                 argsAsList.add(this.fromASchema);
             }
-        } else if (this.columns) {
+        } else if (this.exclusive.columns) {
             if (this.fromATable != null) {
                 argsAsList.add("FROM");
                 argsAsList.add(this.fromATable);
@@ -122,11 +133,8 @@ public class ShowSubCommand implements Callable<Integer> {
                 final String sql = buildSql(args);
                 logger.info("Execute sql {}", sql);
                 try (final ResultSet rs = stat.executeQuery(sql)) {
-                    final Optional<OutputMode> outputModeOptional = OutputMode.findOutputMode(this.outputFormat);
-                    if (outputModeOptional.isPresent()) {
-                        final OutputBy outputBy = OutputMode.createOutputBy(outputModeOptional.get());
-                        outputBy.output(rs, System.out);
-                    }
+                    final OutputBy outputBy = OutputMode.createOutputBy(this.outputFormat);
+                    outputBy.output(rs, System.out);
                 }
             }
             connection.rollback(savepoint);
