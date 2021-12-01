@@ -436,7 +436,7 @@ $ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainTools.jar Shell \
    -sql "SELECT * from TEST"
 ....
 
-Generated output of running _Shell_:
+Generated output of running tool _Shell_:
 
 ....
 ID | NAME

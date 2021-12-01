@@ -23,3 +23,5 @@
 hs_err_pid*
 
 **/target/
+/MainTools.html
+/MainH2.html

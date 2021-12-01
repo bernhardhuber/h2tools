@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  *
@@ -30,25 +32,22 @@ import org.junit.jupiter.api.Test;
  */
 public class MainToolRegistryTest {
 
-    @Test
-    public void testFindGetOrDefault_server() {
+    @ParameterizedTest
+    @ValueSource(strings = {"SERVER", "server", "Server"})
+    public void testFindGetOrDefault_server(String command) {
         final MainToolRegistry instance = new MainToolRegistry();
 
-        String[] commands = {"SERVER", "server", "Server"};
-        for (int i = 0; i < commands.length; i++) {
-            String command = commands[i];
-            String m = "" + i;
-            Optional<Class<? extends Tool>> cOptional = instance.findGetOrDefault(command);
-            assertNotNull(cOptional);
-            assertTrue(cOptional.isPresent());
-            assertEquals(Server.class.getName(), cOptional.get().getName(), m);
-        }
+        final String m = "" + command;
+        final Optional<Class<? extends Tool>> cOptional = instance.findGetOrDefault(command);
+        assertNotNull(cOptional, m);
+        assertTrue(cOptional.isPresent(), m);
+        assertEquals(Server.class.getName(), cOptional.get().getName(), m);
     }
 
     @Test
     public void testRetrieveIterableOfToolClassesWithMain() {
         final MainToolRegistry instance = new MainToolRegistry();
-        Iterable<ToolEntry> it = instance.retrieveIterableOfToolClassesWithMain();
+        final Iterable<ToolEntry> it = instance.retrieveIterableOfToolClassesWithMain();
         assertNotNull(it);
 
         int i = 0;

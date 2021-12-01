@@ -23,8 +23,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.h2.util.Tool;
 import org.huberb.h2tools.MainToolRegistry.ToolEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Model.CommandSpec;
@@ -64,8 +62,6 @@ import picocli.CommandLine.Spec;
         + ""
 )
 public class MainTools implements Callable<Integer> {
-
-    private static final Logger logger = LoggerFactory.getLogger(MainTools.class);
 
     /**
      * main entry point.

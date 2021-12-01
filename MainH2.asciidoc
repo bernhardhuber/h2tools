@@ -100,8 +100,7 @@ Creates a SQL script file by extracting the schema and data of a database.
       --simple            SIMPLE does not use multi-row insert statements.
       --table=TABLE       When using the TABLE, only the selected table(s) are
                             included.
-      --to=TO             The target script file name, default value: 'backup.
-                            sql'
+      --to=TO             The target script file name
                             Default: backup.sql
   -V, --version           Print version information and exit.
 ....
@@ -125,22 +124,20 @@ Usage: MainH2 csvRead [-hV] [--[no-]case-sensitive-columnnames] [--[no-]
 Read CSV file, and store its data into a database.
       --[no-]case-sensitive-columnnames
                           use case sensitive column names
-      --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1, default value:
-                            'UTF-8'
+      --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1
                             Default: UTF-8
       --create-table=CREATE-TABLE
                           create this table, and insert read CSV data into this
                             table.
       --csv-columns=COLUMNS
                           CSV columns
-      --escape=ESCAPE     the character that escapes the field delimiter,
-                            default value: '"'
+      --escape=ESCAPE     the character that escapes the field delimiter
                             Default: "
       --field-delimiter=FIELDDELIMITER
-                          the character enclosing a field, default value: '"'
+                          the character enclosing a field
                             Default: "
       --field-separator=FIELDSEPARATOR
-                          the character separating fields, default value: ','
+                          the character separating fields
                             Default: ,
       --from=FROM         The source csv file name.
                             Default: csvread.csv
@@ -214,17 +211,15 @@ Usage: MainH2 csvWrite [-hV] [--[no-]case-sensitive-columnnames] [--[no-]
 Writes a CSV (comma separated values).
       --[no-]case-sensitive-columnnames
                           use case sensitive column names
-      --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1, default value:
-                            'UTF-8'
+      --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1
                             Default: UTF-8
-      --escape=ESCAPE     the character that escapes the field delimiter,
-                            default value: '"'
+      --escape=ESCAPE     the character that escapes the field delimiter
                             Default: "
       --field-delimiter=FIELDDELIMITER
-                          the character enclosing a field, default value: '"'
+                          the character enclosing a field
                             Default: "
       --field-separator=FIELDSEPARATOR
-                          the character separating fields, default value: ','
+                          the character separating fields
                             Default: ,
   -h, --help              Show this help message and exit.
       --line-comment=<lineComment>
@@ -244,8 +239,7 @@ Writes a CSV (comma separated values).
       --[no-]preserve-whitespace
                           Preserve whitespace in values
       --query=QUERY       The query string to extract data
-      --to=TO             The target csv file name, default value: 'csvwrite.
-                            csv'
+      --to=TO             The target csv file name
                             Default: csvwrite.csv
   -V, --version           Print version information and exit.
 ....
@@ -257,20 +251,20 @@ Show schema, and table defintions.
 === DESCRIPTION
 ....
 $ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar show -h
-Usage: MainH2 show [-hV] [--columns] [--schemas] [--tables]
-                   [--from-schema=SCHEMA] [--from-table=TABLE]
-                   [--output-format=OUTPUTFORMAT]
+Usage: MainH2 show [-hV] [--from-schema=SCHEMA] [--from-table=TABLE]
+                   [--output-format=OUTPUTFORMAT] (--schemas | --tables |
+                   --columns)
 Lists the schemas, tables, or the columns of a table.
       --columns              Show columns
       --from-schema=SCHEMA   Show from a schema
       --from-table=TABLE     Show from a table
   -h, --help                 Show this help message and exit.
       --output-format=OUTPUTFORMAT
-                             Output format used, default value: 'CSV'
+                             Output format used.Valid values: RAW, CSV, JSON,
+                               JSON_ARRAYS, JSON_MAPS, YAML, TABULAR
                                Default: CSV
       --schemas              Show schemas
       --tables               Show tables
   -V, --version              Print version information and exit.
-
 ....
 

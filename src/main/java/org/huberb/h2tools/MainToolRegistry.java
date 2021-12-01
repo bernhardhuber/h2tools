@@ -31,17 +31,17 @@ class MainToolRegistry {
 
     static class ToolEntry {
 
-        String name;
-        Class<? extends Tool> clazz;
-        String description;
+        final String name;
+        final Class<? extends Tool> clazz;
+        final String description;
 
-        public ToolEntry(String name, Class<? extends Tool> clazz, String description) {
+        private ToolEntry(String name, Class<? extends Tool> clazz, String description) {
             this.name = name;
             this.clazz = clazz;
             this.description = description;
         }
 
-        static List<ToolEntry> l() {
+        private final static List<ToolEntry> TOOL_ENTRY_LIST_INSTANCE() {
             final List<ToolEntry> l = Arrays.asList(
                     new ToolEntry(
                             org.h2.tools.Backup.class.getSimpleName(),
@@ -102,17 +102,16 @@ class MainToolRegistry {
 
         }
     }
-    final List<ToolEntry> l;
+    final List<ToolEntry> toolsEntryList;
 
     MainToolRegistry() {
-
-        l = ToolEntry.l();
+        toolsEntryList = ToolEntry.TOOL_ENTRY_LIST_INSTANCE();
     }
 
     Optional<Class<? extends Tool>> findGetOrDefault(String commandLowerCase) {
         Class<? extends Tool> value = null;
         final String key = commandLowerCase.toLowerCase();
-        for (ToolEntry te : this.l) {
+        for (ToolEntry te : this.toolsEntryList) {
             if (key.equalsIgnoreCase(te.name)) {
                 value = te.clazz;
                 break;
@@ -122,7 +121,7 @@ class MainToolRegistry {
     }
 
     Iterable<ToolEntry> retrieveIterableOfToolClassesWithMain() {
-        return Collections.unmodifiableList(this.l);
+        return Collections.unmodifiableList(this.toolsEntryList);
     }
 
 }
