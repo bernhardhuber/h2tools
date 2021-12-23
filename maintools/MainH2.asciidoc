@@ -1,0 +1,270 @@
+= MainH2
+Run h2 tools.
+:TOC:
+
+== SYNOPSIS
+
+....
+Usage: MainH2 [-hV] [--driver=DRIVER] [--password=PASSWORD] [--url=URL]
+              [--user=USER] [@<filename>...] [COMMAND]
+....
+
+== DESCRIPTION
+
+....
+Usage: MainH2 [-hV] [--driver=DRIVER] [--password=PASSWORD] [--url=URL]
+              [--user=USER] [@<filename>...] [COMMAND]
+Run H2 Tools
+Database URLs (https://h2database.com/html/features.html#database_url)
+
+Embedded (https://h2database.com/html/features.html#connection_modes)
+jdbc:h2:~/test 'test' in the user home directory
+jdbc:h2:/data/test 'test' in the directory /data
+jdbc:h2:./test in the current(!) working directory
+
+In-Memory (https://h2database.com/html/features.html#in_memory_databases)
+jdbc:h2:mem:test multiple connections in one process
+jdbc:h2:mem: unnamed private; one connection
+
+Server Mode (https://h2database.com/html/tutorial.html#using_server)
+jdbc:h2:tcp://localhost/~/test user home dir
+jdbc:h2:tcp://localhost//data/test absolute dir
+Server start:java -cp *.jar org.h2.tools.Server
+
+Settings (https://h2database.com/html/features.html#database_url)
+jdbc:h2:..;MODE=MySQL compatibility (or HSQLDB,...)
+jdbc:h2:..;TRACE_LEVEL_FILE=3 log to *.trace.db
+
+      [@<filename>...]      One or more argument files containing options.
+      --driver=DRIVER       jdbc Driver
+                              Default: org.h2.Driver
+  -h, --help                Show this help message and exit.
+      --password=PASSWORD   h2 password
+                              Default:
+      --url=URL             h2 jdbc URL
+                              Default: jdbc:h2:mem:/test1
+      --user=USER           h2 user
+                              Default: sa
+  -V, --version             Print version information and exit.
+Commands:
+  script    Creates a SQL script file by extracting the schema and data of a
+              database.
+  csvRead   Reading a CSV File from within a database.
+  csvWrite  Writes a CSV (comma separated values).
+  show      Lists the schemas, tables, or the columns of a table.
+....
+
+== Subcommand script
+Creates a SQL script file by extracting the schema and data of an h2 database.
+
+=== DESCRIPTION
+....
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar script -h
+Usage: MainH2 script [-hV] [--drop] [--nodata] [--nopasswords] [--nosettings]
+                     [--simple] [--blocksize=<blocksize>] [--charset=CHARSET]
+                     [--cipher-algorithm=CIPHERALGORITHM]
+                     [--cipher-password=CIPHERPASSWORD] [--columns=COLUMNS]
+                     [--compression=COMPRESSION] [--schema=SCHEMA]
+                     [--table=TABLE] [--to=TO]
+Creates a SQL script file by extracting the schema and data of a database.
+      --blocksize=<blocksize>
+                          If the block size is set, CLOB and BLOB values larger
+                            than this size are split into separate blocks.
+                            BLOCKSIZE is used when writing out LOB data, and
+                            specifies the point at the values transition from
+                            being inserted as inline values, to be inserted
+                            using out-of-line commands. Default value: '8192'
+                            Default: 8192
+      --charset=CHARSET   script charset, eg UTF-8, ISO-8859-1
+      --cipher-algorithm=CIPHERALGORITHM
+                          Only the algorithm AES (AES-128) is supported
+                            currently.
+      --cipher-password=CIPHERPASSWORD
+                          Ciphyer password
+      --columns=COLUMNS   COLUMNS includes column name lists into insert
+                            statements.
+      --compression=COMPRESSION
+                          The compression (DEFALTE, LZF, ZIP, GZIP) and
+                            encryption algorithm to use for script files. When
+                            using encryption, only DEFLATE and LZF are
+                            supported. LZF is faster but uses more space.
+      --drop              If the DROP option is specified, drop statements are
+                            created for tables, views, and sequences.
+  -h, --help              Show this help message and exit.
+      --nodata            NODATA will not emit INSERT statements.
+      --nopasswords       NOPASSWORDS
+      --nosettings        NOSETTINGS turns off dumping the database settings
+                            (the SET XXX commands)
+      --schema=SCHEMA     When using the SCHEMA option, only the selected schema
+                            (s) are included.
+      --simple            SIMPLE does not use multi-row insert statements.
+      --table=TABLE       When using the TABLE, only the selected table(s) are
+                            included.
+      --to=TO             The target script file name
+                            Default: backup.sql
+  -V, --version           Print version information and exit.
+....
+
+== Subcommand csvRead
+Read CSV file, and store its data into a database.
+
+=== DESCRIPTION
+....
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar csvRead -h
+Usage: MainH2 csvRead [-hV] [--[no-]case-sensitive-columnnames] [--[no-]
+                      write-column-header] [--[no-]preserve-whitespace]
+                      [--charset=CHARSET] [--csv-columns=COLUMNS]
+                      [--escape=ESCAPE] [--field-delimiter=FIELDDELIMITER]
+                      [--field-separator=FIELDSEPARATOR] [--from=FROM]
+                      [--line-comment=<lineComment>]
+                      [--line-separator=LINESEPARATOR] [--null=NULL]
+                      (--create-table=CREATE-TABLE |
+                      --insert-table=INSERT-TABLE |
+                      --output-format=OUTPUTFORMAT)
+Read CSV file, and store its data into a database.
+      --[no-]case-sensitive-columnnames
+                          use case sensitive column names
+      --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1
+                            Default: UTF-8
+      --create-table=CREATE-TABLE
+                          create this table, and insert read CSV data into this
+                            table.
+      --csv-columns=COLUMNS
+                          CSV columns
+      --escape=ESCAPE     the character that escapes the field delimiter
+                            Default: "
+      --field-delimiter=FIELDDELIMITER
+                          the character enclosing a field
+                            Default: "
+      --field-separator=FIELDSEPARATOR
+                          the character separating fields
+                            Default: ,
+      --from=FROM         The source csv file name.
+                            Default: csvread.csv
+  -h, --help              Show this help message and exit.
+      --insert-table=INSERT-TABLE
+                          use this table, and insert read CSV data into this
+                            table.
+      --line-comment=<lineComment>
+                            Default:
+      --line-separator=LINESEPARATOR
+                          the line separator used for writing; ignored for
+                            reading
+                            Default:
+
+      --[no-]write-column-header
+                          write csv column header
+      --null=NULL         Support reading existing CSV files that contain
+                            explicit null delimiters. Note that an empty,
+                            unquoted values are also treated as null. Default
+                            value: ''
+                            Default:
+      --output-format=OUTPUTFORMAT
+                          Read CSV data, and show its data using the specified
+                            OUTPUT format. Valid values: RAW, CSV, JSON,
+                            JSON_ARRAYS, JSON_MAPS, YAML, TABULAR
+      --[no-]preserve-whitespace
+                          Preserve whitespace in values
+  -V, --version           Print version information and exit.
+....
+
+=== Example A
+Read read CSV and show its read content as JSON.
+
+....
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar csvRead \
+  --from=src/main/resources/sqls/test/test_1.csv \
+  --output-format=JSON
+....
+
+Input CSV test_1.csv
+....
+"ID","NAME"
+"1","Hi"
+"2","Alice"
+"3","Bob"
+....
+
+Output JSON
+....
+[
+{"ID": "1", "NAME": "Hi"},
+{"ID": "2", "NAME": "Alice"},
+{"ID": "3", "NAME": "Bob"}
+]
+....
+
+== Subcommand csvWrite
+Write database data to a CSV file.
+
+=== DESCRIPTION
+....
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar csvWrite -h
+Usage: MainH2 csvWrite [-hV] [--[no-]case-sensitive-columnnames] [--[no-]
+                       write-column-header] [--[no-]preserve-whitespace]
+                       [--charset=CHARSET] [--escape=ESCAPE]
+                       [--field-delimiter=FIELDDELIMITER]
+                       [--field-separator=FIELDSEPARATOR]
+                       [--line-comment=<lineComment>]
+                       [--line-separator=LINESEPARATOR] [--null=NULL]
+                       --query=QUERY [--to=TO]
+Writes a CSV (comma separated values).
+      --[no-]case-sensitive-columnnames
+                          use case sensitive column names
+      --charset=CHARSET   csv charset, eg UTF-8, ISO-8859-1
+                            Default: UTF-8
+      --escape=ESCAPE     the character that escapes the field delimiter
+                            Default: "
+      --field-delimiter=FIELDDELIMITER
+                          the character enclosing a field
+                            Default: "
+      --field-separator=FIELDSEPARATOR
+                          the character separating fields
+                            Default: ,
+  -h, --help              Show this help message and exit.
+      --line-comment=<lineComment>
+                            Default:
+      --line-separator=LINESEPARATOR
+                          the line separator used for writing; ignored for
+                            reading
+                            Default:
+
+      --[no-]write-column-header
+                          write csv column header
+      --null=NULL         Support reading existing CSV files that contain
+                            explicit null delimiters. Note that an empty,
+                            unquoted values are also treated as null. Default
+                            value: ''
+                            Default:
+      --[no-]preserve-whitespace
+                          Preserve whitespace in values
+      --query=QUERY       The query string to extract data
+      --to=TO             The target csv file name
+                            Default: csvwrite.csv
+  -V, --version           Print version information and exit.
+....
+
+== Subcommand show
+
+Show schema, and table defintions.
+
+=== DESCRIPTION
+....
+$ $JAVA_HOME/bin/java -jar target/h2tools-1.0-SNAPSHOT-mainH2.jar show -h
+Usage: MainH2 show [-hV] [--from-schema=SCHEMA] [--from-table=TABLE]
+                   [--output-format=OUTPUTFORMAT] (--schemas | --tables |
+                   --columns)
+Lists the schemas, tables, or the columns of a table.
+      --columns              Show columns
+      --from-schema=SCHEMA   Show from a schema
+      --from-table=TABLE     Show from a table
+  -h, --help                 Show this help message and exit.
+      --output-format=OUTPUTFORMAT
+                             Output format used.Valid values: RAW, CSV, JSON,
+                               JSON_ARRAYS, JSON_MAPS, YAML, TABULAR
+                               Default: CSV
+      --schemas              Show schemas
+      --tables               Show tables
+  -V, --version              Print version information and exit.
+....
+
