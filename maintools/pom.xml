@@ -78,27 +78,6 @@
             <version>1.7.30</version>
         </dependency>        
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>3.0.5</version>
-            <type>pom</type>
-        </dependency>
-        <!--        <dependency>
-<groupId>org.codehaus.groovy</groupId>
-<artifactId>groovy</artifactId>
-<version>3.0.9</version>        
-        </dependency>
-        <dependency>
-<groupId>org.codehaus.groovy</groupId>
-<artifactId>groovy-sql</artifactId>
-<version>3.0.9</version>        
-        </dependency>
-        <dependency>
-<groupId>org.codehaus.groovy</groupId>
-<artifactId>groovy-groovysh</artifactId>
-<version>3.0.9</version>        
-        </dependency>-->
-        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
         </dependency>

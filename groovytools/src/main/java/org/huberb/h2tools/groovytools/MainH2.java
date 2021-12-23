@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.huberb.h2tools.picocli;
+package org.huberb.h2tools.groovytools;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -29,10 +29,7 @@ import picocli.CommandLine;
  */
 @CommandLine.Command(name = "MainH2",
         subcommands = {
-            ScriptSubCommand.class,
-            CsvReadSubCommand.class,
-            CsvWriteSubCommand.class,
-            ShowSubCommand.class,},
+            GroovyScriptSubCommand.class,},
         mixinStandardHelpOptions = true,
         showAtFileInUsageHelp = true,
         showDefaultValues = true,

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.huberb.h2tools.picocli;
+package org.huberb.h2tools.groovytools;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
