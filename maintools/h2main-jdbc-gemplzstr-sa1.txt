@@ -1,0 +1,6 @@
+# connection to :
+#   gemplzstr, sa1, sa1
+#
+--url=jdbc:h2:tcp://localhost:9093/gemplzstr 
+--user=sa1 
+--password=sa1
