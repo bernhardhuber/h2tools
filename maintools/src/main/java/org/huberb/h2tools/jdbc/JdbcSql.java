@@ -21,7 +21,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,11 +119,24 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
+    /**
+     * Create a new JdbcSql instance.
+     *
+     * @param iconnectionFactory
+     * @return
+     */
     public static JdbcSql newInstance(IConnectionFactory iconnectionFactory) {
         final JdbcSql javaSQL = new JdbcSql(iconnectionFactory);
         return javaSQL;
     }
 
+    /**
+     * Create a new JdbSql instance, and pass it to the consumer.
+     *
+     * @param iconnectionFactory
+     * @param consumer
+     * @throws SQLException
+     */
     public static void withInstance(IConnectionFactory iconnectionFactory,
             ConsumerThrowingSQLException<JdbcSql> consumer) throws SQLException {
         try (JdbcSql jdbcSql = newInstance(iconnectionFactory)) {
@@ -132,12 +144,24 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
+    /**
+     * Pass a connection to the consumer.
+     *
+     * @param consumer
+     * @throws SQLException
+     */
     public void withConnection(ConsumerThrowingSQLException<Connection> consumer) throws SQLException {
         try (Connection connection = this._createOrGetConnection()) {
             consumer.accept(connection);
         }
     }
 
+    /**
+     * Pass a non-auto-commit connection to the consumer.
+     *
+     * @param consumer
+     * @throws SQLException
+     */
     public void withTransaction(ConsumerThrowingSQLException<Connection> consumer) throws SQLException {
         try (Connection connection = this._createOrGetConnection()) {
             try {
@@ -145,9 +169,43 @@ public class JdbcSql implements AutoCloseable {
                 consumer.accept(connection);
                 connection.commit();
             } catch (Exception ex) {
-                connection.rollback();
-                throw ex;
+                try {
+                    if (ex instanceof SQLException) {
+                        throw ex;
+                    } else {
+                        throw new SQLException("withTransaction", ex);
+                    }
+                } finally {
+                    connection.rollback();
+                }
             }
+        }
+    }
+
+    public void eachRow(String sql,
+            ConsumerThrowingSQLException<PreparedStatement> consumer,
+            ConsumerThrowingSQLException<ResultSetMetaData> metaClosure,
+            int offset, int maxRows,
+            ConsumerThrowingSQLException<ResultSet> rowClosure) throws SQLException {
+
+        final Connection connection = _createOrGetConnection();
+        try (PreparedStatement preparedStatement = _createPreparedStatement(sql, consumer)) {
+            try (ResultSet results = preparedStatement.executeQuery()) {
+                if (metaClosure != null) {
+                    metaClosure.accept(results.getMetaData());
+                }
+                final boolean cursorAtRow = _moveCursor(results, offset);
+                if (!cursorAtRow) {
+                    return;
+                }
+
+                int i = 0;
+                while ((maxRows <= 0 || i++ < maxRows) && results.next()) {
+                    rowClosure.accept(results);
+                }
+            }
+        } catch (SQLException e) {
+            throw e;
         }
     }
 
@@ -158,8 +216,8 @@ public class JdbcSql implements AutoCloseable {
             ConsumerThrowingSQLException<ResultSet> rowClosure) throws SQLException {
 
         final Connection connection = _createOrGetConnection();
-        try (Statement preparedStatement = _createTheStatement(connection, sql, params)) {
-            try (ResultSet results = preparedStatement.executeQuery(sql)) {
+        try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
+            try (ResultSet results = preparedStatement.executeQuery()) {
                 if (metaClosure != null) {
                     metaClosure.accept(results.getMetaData());
                 }
@@ -206,21 +264,43 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
+    public int[] executeBatch(String sql,
+            List<List<Object>> paramsList,
+            ConsumerThrowingSQLException<int[]> resultSetConsumer) throws SQLException {
+        final Connection connection = _createOrGetConnection();
+        try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, null)) {
+            for (List<Object> params : paramsList) {
+                for (int i = 0; i < params.size(); i++) {
+                    final int jdbcIndex = i + 1;
+                    preparedStatement.setObject(jdbcIndex, params.get(i));
+                }
+                preparedStatement.addBatch();
+                preparedStatement.clearParameters();
+            }
+
+            int[] updates = preparedStatement.executeBatch();
+            if (resultSetConsumer != null) {
+                resultSetConsumer.accept(updates);
+            }
+            return updates;
+        } catch (SQLException e) {
+            throw e;
+        }
+    }
+
     //=========================================================================
-    boolean isConnectionActive() {
+    public boolean isConnectionActive() {
         return this.connectionOptional.isPresent();
     }
 
-    void doWithConnection(ConsumerThrowingSQLException<Connection> consumer) throws SQLException {
-        if (this.connectionOptional.isPresent()) {
-            consumer.accept(connectionOptional.get());
-        }
+    public Optional<Connection> connectionOptional() {
+        return this.connectionOptional;
     }
 
     Map<String, Object> createMapFromResultSet(ResultSet resultSet) throws SQLException {
         final Map<String, Object> m = new HashMap<>();
         final ResultSetMetaData metaData = resultSet.getMetaData();
-        int columnCount = metaData.getColumnCount();
+        final int columnCount = metaData.getColumnCount();
         for (int i = 1; i <= columnCount; i++) {
             final String label = metaData.getColumnLabel(i);
             final String name = metaData.getColumnLabel(i);
@@ -247,22 +327,9 @@ public class JdbcSql implements AutoCloseable {
         return connection;
     }
 
-    private Statement _createTheStatement(Connection connection, String sql, List<Object> params) throws SQLException {
-        final Statement statement;
-        if (params == null) {
-            statement = _createSimpleStatement(connection, sql);
-        } else {
-            statement = _createPreparedStatement(connection, sql, params);
-        }
-        return statement;
-    }
-
-    private Statement _createSimpleStatement(Connection connection, String sql) throws SQLException {
-        final Statement statement = connection.createStatement();
-        return statement;
-    }
-
-    private PreparedStatement _createPreparedStatement(Connection connection, String sql, List<Object> params) throws SQLException {
+    private PreparedStatement _createPreparedStatement(Connection connection,
+            String sql,
+            List<Object> params) throws SQLException {
         final PreparedStatement preparedStatement = connection.prepareStatement(sql);
         if (params != null) {
             for (int i = 0; i < params.size(); i++) {
@@ -270,6 +337,15 @@ public class JdbcSql implements AutoCloseable {
                 preparedStatement.setObject(jdbcIndex, params.get(i));
             }
         }
+
+        return preparedStatement;
+    }
+
+    private PreparedStatement _createPreparedStatement(String sql,
+            ConsumerThrowingSQLException<PreparedStatement> consumer) throws SQLException {
+        final Connection connection = _createOrGetConnection();
+        final PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, null);
+        consumer.accept(preparedStatement);
         return preparedStatement;
     }
 

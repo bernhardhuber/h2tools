@@ -16,6 +16,7 @@
 package org.huberb.h2tools.jdbc;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class JdbcSqlTest {
         createTable("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))"),
         insertID_1("INSERT INTO TEST VALUES(1, 'Hello')"),
         insertID_2("INSERT INTO TEST VALUES(2, 'World')"),
+        insertID_3("INSERT INTO TEST VALUES(3, 'H2')"),
         selectAll("SELECT * FROM TEST ORDER BY ID"),
         selectCountAll("SELECT COUNT(*) FROM TEST"),
         updateID_1("UPDATE TEST SET NAME='Hi' WHERE ID=1"),
@@ -91,7 +93,6 @@ public class JdbcSqlTest {
                 assertTrue(connection.isValid(5));
             });
         });
-
     }
 
     @Test
@@ -110,6 +111,35 @@ public class JdbcSqlTest {
                 assertFalse(connection.isReadOnly());
                 assertTrue(connection.isValid(5));
             });
+        });
+    }
+
+    @Test
+    public void testWithTransactionThrowingException() throws SQLException {
+        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        //---
+        JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
+            assertFalse(jdbcSql.isConnectionActive());
+            assertNotNull(jdbcSql);
+
+            boolean catchedSQLException = false;
+            try {
+                jdbcSql.withTransaction((final Connection connection) -> {
+                    assertTrue(jdbcSql.isConnectionActive());
+                    assertNotNull(connection);
+                    assertFalse(connection.getAutoCommit());
+
+                    assertFalse(connection.isClosed());
+                    assertFalse(connection.isReadOnly());
+                    assertTrue(connection.isValid(5));
+
+                    throw new RuntimeException("Exception inside withTransaction");
+                });
+            } catch (SQLException sqlException) {
+                catchedSQLException = true;
+            }
+            assertTrue(catchedSQLException);
+            assertTrue(jdbcSql.isConnectionActive());
         });
     }
 
@@ -178,6 +208,47 @@ public class JdbcSqlTest {
     }
 
     @Test
+    public void testExecuteBatchWithParams() throws SQLException {
+        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        //---
+        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        jdbcSql.withTransaction((final Connection connection) -> {
+            {
+                for (final String sql : Arrays.asList(
+                        SqlStatements.dropTable.sql(),
+                        SqlStatements.createTable.sql())) {
+                    final int executeUpdateCount = jdbcSql.executeUpdate(sql, JdbcSql.EMPTY_PARAMS, JdbcSql.EMPTY_INTEGER_CONSUMER);
+                    final String m = "" + sql;
+                    assertTrue(executeUpdateCount == 0 || executeUpdateCount == 1, m);
+                }
+            }
+            {
+                final String sql = "INSERT INTO TEST VALUES(?, ?)";
+                final List<List<Object>> paramsList = new ArrayList<>();
+                paramsList.add(Arrays.asList(1, "hello"));
+                paramsList.add(Arrays.asList(2, "Hello"));
+                paramsList.add(Arrays.asList(3, "HELLO"));
+                paramsList.add(Arrays.asList(4, "world"));
+                paramsList.add(Arrays.asList(5, "World"));
+                paramsList.add(Arrays.asList(6, "WORLD"));
+
+                int[] updates = jdbcSql.executeBatch(sql, paramsList, null);
+            }
+            {
+                final String sql = SqlStatements.selectCountAll.sql();
+                final List<Object> params = Collections.emptyList();
+                jdbcSql.eachRow(sql, params,
+                        JdbcSql.EMPTY_RESULTSETMETADATA_CONSUMER,
+                        0, 1, (ResultSet resultSet) -> {
+                            final int result = resultSet.getInt(1);
+                            final String m = "" + sql;
+                            assertEquals(6, result, m);
+                        });
+            }
+        });
+    }
+
+    @Test
     public void testEachRow() throws SQLException {
         final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
         //---
@@ -198,6 +269,92 @@ public class JdbcSqlTest {
             final List<Map<String, String>> l = new ArrayList<>();
             jdbcSql.eachRow(SqlStatements.selectAll.sql,
                     JdbcSql.EMPTY_PARAMS,
+                    JdbcSql.EMPTY_RESULTSETMETADATA_CONSUMER,
+                    0, 0,
+                    (ResultSet resultSet) -> {
+                        Map<String, String> m = new HashMap<>();
+                        m.put("ID", "" + resultSet.getInt("ID"));
+                        m.put("NAME", "" + resultSet.getString("NAME"));
+                        l.add(m);
+                    });
+            assertEquals(2, l.size());
+            assertEquals("1", l.get(0).getOrDefault("ID", "-"));
+            assertEquals("Hello", l.get(0).getOrDefault("NAME", "-"));
+            assertEquals("2", l.get(1).getOrDefault("ID", "-"));
+            assertEquals("World", l.get(1).getOrDefault("NAME", "-"));
+        });
+    }
+
+    @Test
+    public void testEachRowInExpanded() throws SQLException {
+        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        //---
+        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        jdbcSql.withTransaction((final Connection connection) -> {
+            {
+                for (final String sql : Arrays.asList(
+                        SqlStatements.dropTable.sql(),
+                        SqlStatements.createTable.sql(),
+                        SqlStatements.insertID_1.sql(),
+                        SqlStatements.insertID_2.sql()
+                )) {
+                    final int executeUpdateCount = jdbcSql.executeUpdate(sql, JdbcSql.EMPTY_PARAMS, JdbcSql.EMPTY_INTEGER_CONSUMER);
+                    final String m = "" + sql;
+                    assertTrue(executeUpdateCount == 0 || executeUpdateCount == 1, m);
+                }
+            }
+            final List<Map<String, String>> l = new ArrayList<>();
+            final String sql = "SELECT * FROM TEST WHERE ID IN (?,?) ORDER BY ID";
+            final ConsumerThrowingSQLException<PreparedStatement> consumer = (PreparedStatement preparedStatement) -> {
+                preparedStatement.setInt(1, 1);
+                preparedStatement.setInt(2, 2);
+
+            };
+            jdbcSql.eachRow(sql,
+                    consumer,
+                    JdbcSql.EMPTY_RESULTSETMETADATA_CONSUMER,
+                    0, 0,
+                    (ResultSet resultSet) -> {
+                        Map<String, String> m = new HashMap<>();
+                        m.put("ID", "" + resultSet.getInt("ID"));
+                        m.put("NAME", "" + resultSet.getString("NAME"));
+                        l.add(m);
+                    });
+            assertEquals(2, l.size());
+            assertEquals("1", l.get(0).getOrDefault("ID", "-"));
+            assertEquals("Hello", l.get(0).getOrDefault("NAME", "-"));
+            assertEquals("2", l.get(1).getOrDefault("ID", "-"));
+            assertEquals("World", l.get(1).getOrDefault("NAME", "-"));
+        });
+    }
+
+    @Test
+    public void testEachRowInArray() throws SQLException {
+        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        //---
+        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        jdbcSql.withTransaction((final Connection connection) -> {
+            {
+                for (final String sql : Arrays.asList(
+                        SqlStatements.dropTable.sql(),
+                        SqlStatements.createTable.sql(),
+                        SqlStatements.insertID_1.sql(),
+                        SqlStatements.insertID_2.sql(),
+                        SqlStatements.insertID_3.sql()
+                )) {
+                    final int executeUpdateCount = jdbcSql.executeUpdate(sql, JdbcSql.EMPTY_PARAMS, JdbcSql.EMPTY_INTEGER_CONSUMER);
+                    final String m = "" + sql;
+                    assertTrue(executeUpdateCount == 0 || executeUpdateCount == 1, m);
+                }
+            }
+            final List<Map<String, String>> l = new ArrayList<>();
+            final String sql = "SELECT * FROM TEST WHERE ARRAY_CONTAINS(?, ID) ORDER BY ID";
+            final ConsumerThrowingSQLException<PreparedStatement> consumer = (PreparedStatement preparedStatement) -> {
+                java.sql.Array array = preparedStatement.getConnection().createArrayOf("INT", new Integer[]{1, 2});
+                preparedStatement.setArray(1, array);
+            };
+            jdbcSql.eachRow(sql,
+                    consumer,
                     JdbcSql.EMPTY_RESULTSETMETADATA_CONSUMER,
                     0, 0,
                     (ResultSet resultSet) -> {
@@ -242,11 +399,11 @@ public class JdbcSqlTest {
                         l.add(m);
                     });
             assertEquals(2, l.size());
-            assertEquals("1", ""+l.get(0).getOrDefault("ID", "-"));
-            assertEquals("-", ""+l.get(0).getOrDefault("id", "-"));
+            assertEquals("1", "" + l.get(0).getOrDefault("ID", "-"));
+            assertEquals("-", "" + l.get(0).getOrDefault("id", "-"));
             assertEquals("Hello", l.get(0).getOrDefault("NAME", "-"));
             assertEquals("-", l.get(0).getOrDefault("name", "-"));
-            assertEquals("2", ""+l.get(1).getOrDefault("ID", "-"));
+            assertEquals("2", "" + l.get(1).getOrDefault("ID", "-"));
             assertEquals("World", l.get(1).getOrDefault("NAME", "-"));
         });
     }
