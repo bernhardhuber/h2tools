@@ -23,11 +23,14 @@ import java.util.Optional;
 import java.util.Properties;
 
 /**
+ * Create a jdbc connection from a {@link DriverManager}.
  *
  * @author berni3
+ * @see Connection
+ * @see DriverManager
  */
 public class ConnectionFactoryWithMap implements IConnectionFactory {
-    
+
     final Map<String, Object> m;
 
     public ConnectionFactoryWithMap(Map<String, Object> m) {
@@ -75,5 +78,5 @@ public class ConnectionFactoryWithMap implements IConnectionFactory {
         }
         return connection;
     }
-    
+
 }

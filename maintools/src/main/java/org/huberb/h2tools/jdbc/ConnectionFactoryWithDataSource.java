@@ -20,11 +20,14 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 /**
+ * Create a jdbc connection from a {@link DataSource}.
  *
  * @author berni3
+ * @see Connection
+ * @see DataSource
  */
 public class ConnectionFactoryWithDataSource implements IConnectionFactory {
-    
+
     final DataSource dataSource;
 
     public ConnectionFactoryWithDataSource(DataSource dataSource) {
@@ -33,8 +36,8 @@ public class ConnectionFactoryWithDataSource implements IConnectionFactory {
 
     @Override
     public Connection createConnection() throws SQLException {
-        Connection connection = this.dataSource.getConnection();
+        final Connection connection = this.dataSource.getConnection();
         return connection;
     }
-    
+
 }

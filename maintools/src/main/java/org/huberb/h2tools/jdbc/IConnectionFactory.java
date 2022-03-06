@@ -19,11 +19,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
+ * Abstraction for creating a jdbc connection.
  *
  * @author berni3
  */
 public interface IConnectionFactory {
 
     Connection createConnection() throws SQLException;
-    
+
 }
