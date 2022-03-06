@@ -25,7 +25,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.huberb.h2tools.jdbc.JdbcSql.ConnectionFactoryWithMap;
+import org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource;
+import org.huberb.h2tools.jdbc.ConnectionFactoryWithMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -59,12 +60,13 @@ public class JdbcSqlTest {
             return this.sql;
         }
     }
+    final DefaultDataSourceOrConnectionCreator defaultDataSourceOrConnectionCreator = new DefaultDataSourceOrConnectionCreator();
 
     @Test
     public void testNewInstance() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = defaultDataSourceOrConnectionCreator.createFromH2JdbcDataSource();
         //---
-        try (final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap)) {
+        try (final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithDataSource)) {
             assertNotNull(jdbcSql);
             assertFalse(jdbcSql.isConnectionActive());
             jdbcSql.withConnection((final Connection connection) -> {
@@ -74,16 +76,16 @@ public class JdbcSqlTest {
                 assertFalse(connection.isReadOnly());
                 assertTrue(connection.isValid(5));
             });
+            assertFalse(jdbcSql.isConnectionActive());
         }
     }
 
     @Test
     public void testWithInstance() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
             assertFalse(jdbcSql.isConnectionActive());
-
             assertNotNull(jdbcSql);
             jdbcSql.withConnection((final Connection connection) -> {
                 assertTrue(jdbcSql.isConnectionActive());
@@ -92,12 +94,13 @@ public class JdbcSqlTest {
                 assertFalse(connection.isReadOnly());
                 assertTrue(connection.isValid(5));
             });
+            assertFalse(jdbcSql.isConnectionActive());
         });
     }
 
     @Test
     public void testWithTransaction() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
             assertFalse(jdbcSql.isConnectionActive());
@@ -111,12 +114,13 @@ public class JdbcSqlTest {
                 assertFalse(connection.isReadOnly());
                 assertTrue(connection.isValid(5));
             });
+            assertFalse(jdbcSql.isConnectionActive());
         });
     }
 
     @Test
     public void testWithTransactionThrowingException() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
             assertFalse(jdbcSql.isConnectionActive());
@@ -139,13 +143,13 @@ public class JdbcSqlTest {
                 catchedSQLException = true;
             }
             assertTrue(catchedSQLException);
-            assertTrue(jdbcSql.isConnectionActive());
+            assertFalse(jdbcSql.isConnectionActive());
         });
     }
 
     @Test
     public void testWithTransactionExecuteUpdateAndExecuteQuery() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -176,7 +180,7 @@ public class JdbcSqlTest {
 
     @Test
     public void testExecuteUpdateWithParams() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -209,7 +213,7 @@ public class JdbcSqlTest {
 
     @Test
     public void testExecuteBatchWithParams() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -250,7 +254,7 @@ public class JdbcSqlTest {
 
     @Test
     public void testEachRow() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -287,7 +291,7 @@ public class JdbcSqlTest {
 
     @Test
     public void testEachRowInExpanded() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -330,7 +334,7 @@ public class JdbcSqlTest {
 
     @Test
     public void testEachRowInArray() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -373,7 +377,7 @@ public class JdbcSqlTest {
 
     @Test
     public void testEachRowUsingCreateMapFromResultSet() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = createConnectionFactoryWithMap();
+        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
         //---
         final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
         jdbcSql.withTransaction((final Connection connection) -> {
@@ -408,13 +412,4 @@ public class JdbcSqlTest {
         });
     }
 
-    //----
-    ConnectionFactoryWithMap createConnectionFactoryWithMap() {
-        final Map<String, Object> m = new HashMap<>();
-        m.put("url", "jdbc:h2:mem:test1");
-        m.put("user", "sa1");
-        m.put("password", "sa1");
-        final ConnectionFactoryWithMap connectionFactoryWithMap = new ConnectionFactoryWithMap(m);
-        return connectionFactoryWithMap;
-    }
 }

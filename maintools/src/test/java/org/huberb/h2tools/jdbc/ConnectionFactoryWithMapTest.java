@@ -20,7 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import org.huberb.h2tools.jdbc.JdbcSql.ConnectionFactoryWithMap;
+import org.huberb.h2tools.jdbc.ConnectionFactoryWithMap;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

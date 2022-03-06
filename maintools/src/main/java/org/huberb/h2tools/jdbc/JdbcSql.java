@@ -16,7 +16,6 @@
 package org.huberb.h2tools.jdbc;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -25,10 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
-import javax.sql.DataSource;
 
 /**
+ * Wrapper around jdbc operations.
  *
  * @author berni3
  */
@@ -44,79 +42,6 @@ public class JdbcSql implements AutoCloseable {
     JdbcSql(IConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
         this.connectionOptional = Optional.empty();
-    }
-
-    public static interface IConnectionFactory {
-
-        Connection createConnection() throws SQLException;
-    }
-
-    public static class ConnectionFactoryWithMap implements IConnectionFactory {
-
-        final Map<String, Object> m;
-
-        public ConnectionFactoryWithMap(Map<String, Object> m) {
-            this.m = m;
-        }
-
-        Optional<String> extractUrl() {
-            final Optional<String> urlOptional = Optional.ofNullable((String) m.getOrDefault("url", null));
-            return urlOptional;
-        }
-
-        Optional<String[]> extractUserPassword() {
-            final Optional<String[]> userPasswordOptional;
-            final String user = (String) m.getOrDefault("user", null);
-            final String password = (String) m.getOrDefault("password", null);
-
-            if (user != null && password != null) {
-                userPasswordOptional = Optional.of(new String[]{user, password});
-            } else {
-                userPasswordOptional = Optional.empty();
-            }
-            return userPasswordOptional;
-        }
-
-        Optional<Properties> extractProperties() {
-            final Optional<Properties> propertiesOptional = Optional.ofNullable((Properties) m.getOrDefault("properties", null));
-            return propertiesOptional;
-        }
-
-        @Override
-        public Connection createConnection() throws SQLException {
-            final Connection connection;
-
-            final Optional<String> urlOptional = extractUrl();
-            final Optional<String[]> userPasswordOptional = extractUserPassword();
-            final Optional<Properties> propertiesOptional = extractProperties();
-            if (urlOptional.isPresent()) {
-                if (propertiesOptional.isPresent()) {
-                    connection = DriverManager.getConnection(urlOptional.get(), propertiesOptional.get());
-                } else if (userPasswordOptional.isPresent()) {
-                    connection = DriverManager.getConnection(urlOptional.get(), userPasswordOptional.get()[0], userPasswordOptional.get()[1]);
-                } else {
-                    connection = DriverManager.getConnection(urlOptional.get());
-                }
-            } else {
-                throw new SQLException("Cannot create connection from " + m);
-            }
-            return connection;
-        }
-    }
-
-    public static class ConnectionFactoryWithDataSource implements IConnectionFactory {
-
-        final DataSource dataSource;
-
-        public ConnectionFactoryWithDataSource(DataSource dataSource) {
-            this.dataSource = dataSource;
-        }
-
-        @Override
-        public Connection createConnection() throws SQLException {
-            Connection connection = this.dataSource.getConnection();
-            return connection;
-        }
     }
 
     /**
@@ -183,68 +108,89 @@ public class JdbcSql implements AutoCloseable {
     }
 
     public void eachRow(String sql,
-            ConsumerThrowingSQLException<PreparedStatement> consumer,
-            ConsumerThrowingSQLException<ResultSetMetaData> metaClosure,
+            ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer,
+            ConsumerThrowingSQLException<ResultSetMetaData> resultSetMetaDataConsumer,
             int offset, int maxRows,
-            ConsumerThrowingSQLException<ResultSet> rowClosure) throws SQLException {
+            ConsumerThrowingSQLException<ResultSet> resultSetConsumer) throws SQLException {
 
+        final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
-        try (PreparedStatement preparedStatement = _createPreparedStatement(sql, consumer)) {
-            try (ResultSet results = preparedStatement.executeQuery()) {
-                if (metaClosure != null) {
-                    metaClosure.accept(results.getMetaData());
-                }
-                final boolean cursorAtRow = _moveCursor(results, offset);
-                if (!cursorAtRow) {
-                    return;
-                }
+        try {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(sql, preparedStatementConsumer)) {
+                try (ResultSet results = preparedStatement.executeQuery()) {
+                    if (resultSetMetaDataConsumer != null) {
+                        resultSetMetaDataConsumer.accept(results.getMetaData());
+                    }
+                    final boolean cursorAtRow = _moveCursor(results, offset);
+                    if (!cursorAtRow) {
+                        return;
+                    }
 
-                int i = 0;
-                while ((maxRows <= 0 || i++ < maxRows) && results.next()) {
-                    rowClosure.accept(results);
+                    int i = 0;
+                    while ((maxRows <= 0 || i++ < maxRows) && results.next()) {
+                        resultSetConsumer.accept(results);
+                    }
                 }
+            } catch (SQLException e) {
+                throw e;
             }
-        } catch (SQLException e) {
-            throw e;
+        } finally {
+            if (closeConnectionInFinally) {
+                connection.close();
+            }
         }
     }
 
     public void eachRow(String sql,
             List<Object> params,
-            ConsumerThrowingSQLException<ResultSetMetaData> metaClosure,
+            ConsumerThrowingSQLException<ResultSetMetaData> resultSetMetaDataConsumer,
             int offset, int maxRows,
-            ConsumerThrowingSQLException<ResultSet> rowClosure) throws SQLException {
+            ConsumerThrowingSQLException<ResultSet> resultSetConsumer) throws SQLException {
 
+        final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
-        try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
-            try (ResultSet results = preparedStatement.executeQuery()) {
-                if (metaClosure != null) {
-                    metaClosure.accept(results.getMetaData());
-                }
-                final boolean cursorAtRow = _moveCursor(results, offset);
-                if (!cursorAtRow) {
-                    return;
-                }
+        try {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
+                try (ResultSet results = preparedStatement.executeQuery()) {
+                    if (resultSetMetaDataConsumer != null) {
+                        resultSetMetaDataConsumer.accept(results.getMetaData());
+                    }
+                    final boolean cursorAtRow = _moveCursor(results, offset);
+                    if (!cursorAtRow) {
+                        return;
+                    }
 
-                int i = 0;
-                while ((maxRows <= 0 || i++ < maxRows) && results.next()) {
-                    rowClosure.accept(results);
+                    int i = 0;
+                    while ((maxRows <= 0 || i++ < maxRows) && results.next()) {
+                        resultSetConsumer.accept(results);
+                    }
                 }
+            } catch (SQLException e) {
+                throw e;
             }
-        } catch (SQLException e) {
-            throw e;
+        } finally {
+            if (closeConnectionInFinally) {
+                connection.close();
+            }
         }
     }
 
     public void executeQuery(String sql,
             List<Object> params,
             ConsumerThrowingSQLException<ResultSet> resultSetConsumer) throws SQLException {
+        final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
-        try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                resultSetConsumer.accept(resultSet);
-            } catch (SQLException e) {
-                throw e;
+        try {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    resultSetConsumer.accept(resultSet);
+                } catch (SQLException e) {
+                    throw e;
+                }
+            }
+        } finally {
+            if (closeConnectionInFinally) {
+                connection.close();
             }
         }
     }
@@ -252,45 +198,66 @@ public class JdbcSql implements AutoCloseable {
     public int executeUpdate(String sql,
             List<Object> params,
             ConsumerThrowingSQLException<Integer> resultSetConsumer) throws SQLException {
+        final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
-        try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
-            int updateCount = preparedStatement.executeUpdate();
-            if (resultSetConsumer != null) {
-                resultSetConsumer.accept(updateCount);
+        try {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
+                int updateCount = preparedStatement.executeUpdate();
+                if (resultSetConsumer != null) {
+                    resultSetConsumer.accept(updateCount);
+                }
+                return updateCount;
+            } catch (SQLException e) {
+                throw e;
             }
-            return updateCount;
-        } catch (SQLException e) {
-            throw e;
+        } finally {
+            if (closeConnectionInFinally) {
+                connection.close();
+            }
         }
     }
 
     public int[] executeBatch(String sql,
             List<List<Object>> paramsList,
             ConsumerThrowingSQLException<int[]> resultSetConsumer) throws SQLException {
+        final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
-        try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, null)) {
-            for (List<Object> params : paramsList) {
-                for (int i = 0; i < params.size(); i++) {
-                    final int jdbcIndex = i + 1;
-                    preparedStatement.setObject(jdbcIndex, params.get(i));
+        try {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, null)) {
+                for (List<Object> params : paramsList) {
+                    for (int i = 0; i < params.size(); i++) {
+                        final int jdbcIndex = i + 1;
+                        preparedStatement.setObject(jdbcIndex, params.get(i));
+                    }
+                    preparedStatement.addBatch();
+                    preparedStatement.clearParameters();
                 }
-                preparedStatement.addBatch();
-                preparedStatement.clearParameters();
-            }
 
-            int[] updates = preparedStatement.executeBatch();
-            if (resultSetConsumer != null) {
-                resultSetConsumer.accept(updates);
+                int[] updates = preparedStatement.executeBatch();
+                if (resultSetConsumer != null) {
+                    resultSetConsumer.accept(updates);
+                }
+                return updates;
+            } catch (SQLException e) {
+                throw e;
             }
-            return updates;
-        } catch (SQLException e) {
-            throw e;
+        } finally {
+            if (closeConnectionInFinally) {
+                connection.close();
+            }
         }
     }
 
     //=========================================================================
-    public boolean isConnectionActive() {
-        return this.connectionOptional.isPresent();
+    public boolean isConnectionActive() throws SQLException {
+        boolean isConnectionActive = this.connectionOptional.map((c) -> {
+            try {
+                return !c.isClosed();
+            } catch (SQLException sqlex) {
+                return false;
+            }
+        }).orElse(Boolean.FALSE);
+        return isConnectionActive;
     }
 
     public Optional<Connection> connectionOptional() {
@@ -318,7 +285,7 @@ public class JdbcSql implements AutoCloseable {
     //=========================================================================
     private Connection _createOrGetConnection() throws SQLException {
         final Connection connection;
-        if (connectionOptional.isPresent()) {
+        if (isConnectionActive()) {
             connection = connectionOptional.get();
         } else {
             connection = this.connectionFactory.createConnection();
