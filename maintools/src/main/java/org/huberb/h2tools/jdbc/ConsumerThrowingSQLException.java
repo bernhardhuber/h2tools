@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 
 /**
+ * Define a consumer for jdbc operations.
  *
  * @author berni3
  */
