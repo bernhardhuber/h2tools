@@ -25,8 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource;
-import org.huberb.h2tools.jdbc.ConnectionFactoryWithMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -60,11 +58,15 @@ public class JdbcSqlTest {
             return this.sql;
         }
     }
+
     final DefaultDataSourceOrConnectionCreator defaultDataSourceOrConnectionCreator = new DefaultDataSourceOrConnectionCreator();
 
     @Test
     public void testNewInstance() throws SQLException {
-        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = defaultDataSourceOrConnectionCreator.createFromH2JdbcDataSource();
+        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource
+                = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithDataSource(
+                        defaultDataSourceOrConnectionCreator.createJdbcDataSource()
+                );
         //---
         try (final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithDataSource)) {
             assertNotNull(jdbcSql);
@@ -309,13 +311,13 @@ public class JdbcSqlTest {
             }
             final List<Map<String, String>> l = new ArrayList<>();
             final String sql = "SELECT * FROM TEST WHERE ID IN (?,?) ORDER BY ID";
-            final ConsumerThrowingSQLException<PreparedStatement> consumer = (PreparedStatement preparedStatement) -> {
+            final ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer = (PreparedStatement preparedStatement) -> {
                 preparedStatement.setInt(1, 1);
                 preparedStatement.setInt(2, 2);
 
             };
             jdbcSql.eachRow(sql,
-                    consumer,
+                    preparedStatementConsumer,
                     JdbcSql.EMPTY_RESULTSETMETADATA_CONSUMER,
                     0, 0,
                     (ResultSet resultSet) -> {
@@ -353,12 +355,12 @@ public class JdbcSqlTest {
             }
             final List<Map<String, String>> l = new ArrayList<>();
             final String sql = "SELECT * FROM TEST WHERE ARRAY_CONTAINS(?, ID) ORDER BY ID";
-            final ConsumerThrowingSQLException<PreparedStatement> consumer = (PreparedStatement preparedStatement) -> {
+            final ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer = (PreparedStatement preparedStatement) -> {
                 java.sql.Array array = preparedStatement.getConnection().createArrayOf("INT", new Integer[]{1, 2});
                 preparedStatement.setArray(1, array);
             };
             jdbcSql.eachRow(sql,
-                    consumer,
+                    preparedStatementConsumer,
                     JdbcSql.EMPTY_RESULTSETMETADATA_CONSUMER,
                     0, 0,
                     (ResultSet resultSet) -> {

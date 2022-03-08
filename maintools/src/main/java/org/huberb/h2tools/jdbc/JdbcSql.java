@@ -83,6 +83,10 @@ public class JdbcSql implements AutoCloseable {
 
     /**
      * Pass a non-auto-commit connection to the consumer.
+     * <p>
+     * Only if consumer does not throw an expcetion, the db transaction is
+     * committed. In case an exception is thrown, the transaction is rolled
+     * back.
      *
      * @param consumer
      * @throws SQLException
@@ -147,41 +151,35 @@ public class JdbcSql implements AutoCloseable {
             int offset, int maxRows,
             ConsumerThrowingSQLException<ResultSet> resultSetConsumer) throws SQLException {
 
-        final boolean closeConnectionInFinally = !this.isConnectionActive();
-        final Connection connection = _createOrGetConnection();
-        try {
-            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
-                try (ResultSet results = preparedStatement.executeQuery()) {
-                    if (resultSetMetaDataConsumer != null) {
-                        resultSetMetaDataConsumer.accept(results.getMetaData());
-                    }
-                    final boolean cursorAtRow = _moveCursor(results, offset);
-                    if (!cursorAtRow) {
-                        return;
-                    }
-
-                    int i = 0;
-                    while ((maxRows <= 0 || i++ < maxRows) && results.next()) {
-                        resultSetConsumer.accept(results);
-                    }
+        final ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer = (PreparedStatement preparedStatement) -> {
+            if (params != null) {
+                for (int i = 0; i < params.size(); i++) {
+                    final int jdbcIndex = i + 1;
+                    preparedStatement.setObject(jdbcIndex, params.get(i));
                 }
-            } catch (SQLException e) {
-                throw e;
             }
-        } finally {
-            if (closeConnectionInFinally) {
-                connection.close();
-            }
-        }
+        };
+        eachRow(sql, preparedStatementConsumer, resultSetMetaDataConsumer, offset, maxRows, resultSetConsumer);
     }
 
+    /**
+     * Execute an execute query.
+     *
+     * @param sql the sql statement
+     * @param preparedStatementConsumer a consumer accepting a
+     * {@link  PreparedStatement}, the consumer shall set the prepared statement
+     * parameters.
+     * @param resultSetConsumer a consumer accepts the {@link ResultSet} of the
+     * query.
+     * @throws SQLException
+     */
     public void executeQuery(String sql,
-            List<Object> params,
+            ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer,
             ConsumerThrowingSQLException<ResultSet> resultSetConsumer) throws SQLException {
         final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
         try {
-            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(sql, preparedStatementConsumer)) {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     resultSetConsumer.accept(resultSet);
                 } catch (SQLException e) {
@@ -195,13 +193,49 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
-    public int executeUpdate(String sql,
+    /**
+     * Execute an execute query.
+     *
+     * @param sql the sql statement.
+     * @param params optional parameters, if no parameters pass
+     * {@link JdbcSql#EMPTY_PARAMS}.
+     * @param resultSetConsumer a consumer accepts the {@link ResultSet} of the
+     * query.
+     * @throws SQLException
+     */
+    public void executeQuery(String sql,
             List<Object> params,
+            ConsumerThrowingSQLException<ResultSet> resultSetConsumer) throws SQLException {
+
+        final ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer = (PreparedStatement preparedStatement) -> {
+            if (params != null) {
+                for (int i = 0; i < params.size(); i++) {
+                    final int jdbcIndex = i + 1;
+                    preparedStatement.setObject(jdbcIndex, params.get(i));
+                }
+            }
+        };
+        executeQuery(sql, preparedStatementConsumer, resultSetConsumer);
+    }
+
+    /**
+     * Execute an execute update.
+     *
+     * @param sql the sql statement.
+     * @param preparedStatementConsumer a consumer accepting a
+     * {@link  PreparedStatement}, the consumer shall set the prepared statement
+     * parameters.
+     * @param resultSetConsumer
+     * @return count of updates
+     * @throws SQLException
+     */
+    public int executeUpdate(String sql,
+            ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer,
             ConsumerThrowingSQLException<Integer> resultSetConsumer) throws SQLException {
         final boolean closeConnectionInFinally = !this.isConnectionActive();
         final Connection connection = _createOrGetConnection();
         try {
-            try (PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, params)) {
+            try (PreparedStatement preparedStatement = _createPreparedStatement(sql, preparedStatementConsumer)) {
                 int updateCount = preparedStatement.executeUpdate();
                 if (resultSetConsumer != null) {
                     resultSetConsumer.accept(updateCount);
@@ -217,6 +251,39 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
+    /**
+     * Execute an execute update.
+     *
+     * @param sql the sql statement.
+     * @param params optional parameters, if no parameters pass
+     * {@link JdbcSql#EMPTY_PARAMS}.
+     * @param resultSetConsumer
+     * @return count of updates
+     * @throws SQLException
+     */
+    public int executeUpdate(String sql,
+            List<Object> params,
+            ConsumerThrowingSQLException<Integer> resultSetConsumer) throws SQLException {
+        final ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer = (PreparedStatement preparedStatement) -> {
+            if (params != null) {
+                for (int i = 0; i < params.size(); i++) {
+                    final int jdbcIndex = i + 1;
+                    preparedStatement.setObject(jdbcIndex, params.get(i));
+                }
+            }
+        };
+        return executeUpdate(sql, preparedStatementConsumer, resultSetConsumer);
+    }
+
+    /**
+     * Execute an sql statement in batch mode.
+     *
+     * @param sql the sql statement
+     * @param paramsList list of parameters
+     * @param resultSetConsumer
+     * @return
+     * @throws SQLException
+     */
     public int[] executeBatch(String sql,
             List<List<Object>> paramsList,
             ConsumerThrowingSQLException<int[]> resultSetConsumer) throws SQLException {
@@ -249,22 +316,14 @@ public class JdbcSql implements AutoCloseable {
     }
 
     //=========================================================================
-    public boolean isConnectionActive() throws SQLException {
-        boolean isConnectionActive = this.connectionOptional.map((c) -> {
-            try {
-                return !c.isClosed();
-            } catch (SQLException sqlex) {
-                return false;
-            }
-        }).orElse(Boolean.FALSE);
-        return isConnectionActive;
-    }
-
-    public Optional<Connection> connectionOptional() {
-        return this.connectionOptional;
-    }
-
-    Map<String, Object> createMapFromResultSet(ResultSet resultSet) throws SQLException {
+    /**
+     * Create a map from a given result set.
+     *
+     * @param resultSet given result set.
+     * @return a map created from the result set.
+     * @throws SQLException
+     */
+    public Map<String, Object> createMapFromResultSet(ResultSet resultSet) throws SQLException {
         final Map<String, Object> m = new HashMap<>();
         final ResultSetMetaData metaData = resultSet.getMetaData();
         final int columnCount = metaData.getColumnCount();
@@ -283,6 +342,21 @@ public class JdbcSql implements AutoCloseable {
     }
 
     //=========================================================================
+    public boolean isConnectionActive() throws SQLException {
+        boolean isConnectionActive = this.connectionOptional.map((c) -> {
+            try {
+                return !c.isClosed();
+            } catch (SQLException sqlex) {
+                return false;
+            }
+        }).orElse(Boolean.FALSE);
+        return isConnectionActive;
+    }
+
+    public Optional<Connection> connectionOptional() {
+        return this.connectionOptional;
+    }
+
     private Connection _createOrGetConnection() throws SQLException {
         final Connection connection;
         if (isConnectionActive()) {
@@ -294,6 +368,15 @@ public class JdbcSql implements AutoCloseable {
         return connection;
     }
 
+    /**
+     * Create a {@link PreparedStatement}.
+     *
+     * @param connection
+     * @param sql
+     * @param params
+     * @return
+     * @throws SQLException
+     */
     private PreparedStatement _createPreparedStatement(Connection connection,
             String sql,
             List<Object> params) throws SQLException {
@@ -304,15 +387,22 @@ public class JdbcSql implements AutoCloseable {
                 preparedStatement.setObject(jdbcIndex, params.get(i));
             }
         }
-
         return preparedStatement;
     }
 
+    /**
+     * Create a {@link PreparedStatement}.
+     *
+     * @param sql
+     * @param preparedStatementConsumer
+     * @return
+     * @throws SQLException
+     */
     private PreparedStatement _createPreparedStatement(String sql,
-            ConsumerThrowingSQLException<PreparedStatement> consumer) throws SQLException {
+            ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer) throws SQLException {
         final Connection connection = _createOrGetConnection();
         final PreparedStatement preparedStatement = _createPreparedStatement(connection, sql, null);
-        consumer.accept(preparedStatement);
+        preparedStatementConsumer.accept(preparedStatement);
         return preparedStatement;
     }
 
