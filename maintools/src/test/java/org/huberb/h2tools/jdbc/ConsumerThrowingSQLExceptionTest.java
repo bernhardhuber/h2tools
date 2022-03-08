@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.huberb.h2tools.jdbc;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
@@ -26,14 +27,11 @@ import org.junit.jupiter.api.Test;
  */
 public class ConsumerThrowingSQLExceptionTest {
 
-    public ConsumerThrowingSQLExceptionTest() {
-    }
-
     /**
      * Test of accept method, of class ConsumerThrowingSQLException.
      */
     @Test
-    public void testAccept() throws SQLException {
+    public void given_consumer_then_accept_of_consumer_is_invoked() throws SQLException {
         Object t = null;
         ConsumerThrowingSQLExceptionImpl instance = new ConsumerThrowingSQLExceptionImpl();
         instance.accept(t);
@@ -44,23 +42,28 @@ public class ConsumerThrowingSQLExceptionTest {
      * Test of andThen method, of class ConsumerThrowingSQLException.
      */
     @Test
-    public void testAndThen() throws SQLException {
-        ConsumerThrowingSQLExceptionImpl after = new ConsumerThrowingSQLExceptionImpl();
-        ConsumerThrowingSQLExceptionImpl instance = new ConsumerThrowingSQLExceptionImpl();
+    public void given_consumer_after_consumer_then_after_is_called_last() throws SQLException {
+        final List<String> l = new ArrayList<>();
+        final ConsumerThrowingSQLException<Object> after = (v) -> {
+            l.add("after:" + Boolean.TRUE);
+        };
+        final ConsumerThrowingSQLException<Object> instance = (v) -> {
+            l.add("instance:" + Boolean.TRUE);
+        };
 
-        ConsumerThrowingSQLException result = instance.andThen(after);
-
-        Object t = null;
+        final ConsumerThrowingSQLException result = instance.andThen(after);
+        final Object t = null;
         result.accept(t);
 
-        assertEquals(1, instance.acceptCalledCount);
-        assertEquals(1, after.acceptCalledCount);
+        assertEquals("instance:" + Boolean.TRUE, "" + l.get(0));
+        assertEquals("after:" + Boolean.TRUE, "" + l.get(1));
     }
 
-    class ConsumerThrowingSQLExceptionImpl implements ConsumerThrowingSQLException<Object> {
+    static class ConsumerThrowingSQLExceptionImpl implements ConsumerThrowingSQLException<Object> {
 
         int acceptCalledCount = 0;
 
+        @Override
         public void accept(Object object) throws SQLException {
             acceptCalledCount += 1;
         }

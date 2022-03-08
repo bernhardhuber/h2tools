@@ -20,8 +20,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource;
-import org.huberb.h2tools.jdbc.ConnectionFactoryWithMap;
 
 /**
  *
@@ -29,6 +27,9 @@ import org.huberb.h2tools.jdbc.ConnectionFactoryWithMap;
  */
 class DefaultDataSourceOrConnectionCreator {
 
+    /**
+     * create a {@link DataSource} backed by {@link JdbcConnectionPool }.
+     */
     JdbcConnectionPool createJdbcConnectionPool() {
         final String url = "jdbc:h2:mem:test1";
         final String username = "sa1";
@@ -37,7 +38,10 @@ class DefaultDataSourceOrConnectionCreator {
         return cp;
     }
 
-    DataSource createDataSource() {
+    /**
+     * create a {@link DataSource} backed by a {@link JdbcDataSource}.
+     */
+    JdbcDataSource createJdbcDataSource() {
         final String url = "jdbc:h2:mem:test1";
         final String username = "sa1";
         final String password = "sa1";
@@ -47,14 +51,19 @@ class DefaultDataSourceOrConnectionCreator {
         ds.setPassword(password);
         return ds;
     }
-    //----//----
 
-    ConnectionFactoryWithDataSource createFromH2JdbcDataSource() {
-        DataSource dataSource = createDataSource();
-        ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(dataSource);
+    /**
+     * Create {@link ConnectionFactoryWithDataSource} from
+     * {@link JdbcDataSource}.
+     *
+     * @return {@link ConnectionFactoryWithDataSource}
+     */
+    ConnectionFactoryWithDataSource createConnectionFactoryWithDataSource(DataSource dataSource) {
+        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(dataSource);
         return connectionFactoryWithDataSource;
     }
 
+    //----
     ConnectionFactoryWithMap createConnectionFactoryWithMap() {
         final Map<String, Object> m = new HashMap<>();
         m.put("url", "jdbc:h2:mem:test1");

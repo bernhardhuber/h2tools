@@ -18,13 +18,8 @@ package org.huberb.h2tools.jdbc;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.jdbcx.JdbcDataSource;
-import org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource;
-import org.huberb.h2tools.jdbc.ConnectionFactoryWithMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -66,7 +61,7 @@ public class ConnectionFactoryWithDataSourceTest {
 
     @Test
     public void given_a_h2_data_source_connection_then_connect_to_this_h2_database() throws SQLException {
-        final DataSource cp = new DefaultDataSourceOrConnectionCreator().createDataSource();
+        final DataSource cp = new DefaultDataSourceOrConnectionCreator().createJdbcDataSource();
         final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(cp);
 
         try (Connection connection = connectionFactoryWithDataSource.createConnection()) {
@@ -84,7 +79,6 @@ public class ConnectionFactoryWithDataSourceTest {
             );
         }
     }
-
 
     String databaseMetaDataInfo(DatabaseMetaData dmd) throws SQLException {
         return String.format(""
