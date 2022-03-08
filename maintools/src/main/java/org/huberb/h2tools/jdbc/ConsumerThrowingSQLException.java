@@ -22,6 +22,7 @@ import java.util.Objects;
  * Define a consumer for jdbc operations.
  *
  * @author berni3
+ * @param <T>
  */
 @FunctionalInterface
 public interface ConsumerThrowingSQLException<T> {
