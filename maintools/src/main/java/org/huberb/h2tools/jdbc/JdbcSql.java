@@ -111,6 +111,20 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
+    /**
+     * Execute an {@link PreparedStatement#executeQuery()} and set query
+     * parameters.
+     * <p>
+     * Invoke resultSetConsumer for each available {@link ResultSet}.
+     *
+     * @param sql
+     * @param preparedStatementConsumer
+     * @param resultSetMetaDataConsumer
+     * @param offset
+     * @param maxRows
+     * @param resultSetConsumer
+     * @throws SQLException
+     */
     public void eachRow(String sql,
             ConsumerThrowingSQLException<PreparedStatement> preparedStatementConsumer,
             ConsumerThrowingSQLException<ResultSetMetaData> resultSetMetaDataConsumer,
@@ -145,6 +159,20 @@ public class JdbcSql implements AutoCloseable {
         }
     }
 
+    /**
+     * Execute an {@link PreparedStatement#executeQuery()} and set query
+     * parameters.
+     * <p>
+     * Invoke resultSetConsumer for each available {@link ResultSet}.
+     *
+     * @param sql
+     * @param params
+     * @param resultSetMetaDataConsumer
+     * @param offset
+     * @param maxRows
+     * @param resultSetConsumer
+     * @throws SQLException
+     */
     public void eachRow(String sql,
             List<Object> params,
             ConsumerThrowingSQLException<ResultSetMetaData> resultSetMetaDataConsumer,
@@ -163,7 +191,12 @@ public class JdbcSql implements AutoCloseable {
     }
 
     /**
-     * Execute an execute query.
+     * Execute an {@link PreparedStatement#executeQuery()} and set query
+     * parameters.
+     * <p>
+     * Invoke resultSetConsumer once with the {@link ResultSet}. Thus iterating
+     * through the result-set is the responsibility of the resultSetConsumer.
+     *
      *
      * @param sql the sql statement
      * @param preparedStatementConsumer a consumer accepting a
@@ -195,6 +228,9 @@ public class JdbcSql implements AutoCloseable {
 
     /**
      * Execute an execute query.
+     * <p>
+     * Invoke resultSetConsumer once with the {@link ResultSet}. Thus iterating
+     * through the result-set is the responsibility of the resultSetConsumer.
      *
      * @param sql the sql statement.
      * @param params optional parameters, if no parameters pass

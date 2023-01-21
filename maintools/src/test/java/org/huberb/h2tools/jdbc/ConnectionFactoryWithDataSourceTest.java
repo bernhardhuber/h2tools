@@ -61,8 +61,8 @@ public class ConnectionFactoryWithDataSourceTest {
 
     @Test
     public void given_a_h2_data_source_connection_then_connect_to_this_h2_database() throws SQLException {
-        final DataSource cp = new DefaultDataSourceOrConnectionCreator().createJdbcDataSource();
-        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(cp);
+        final DataSource dataSource = new DefaultDataSourceOrConnectionCreator().createJdbcDataSource();
+        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(dataSource);
 
         try (Connection connection = connectionFactoryWithDataSource.createConnection()) {
             assertNotNull(connection);

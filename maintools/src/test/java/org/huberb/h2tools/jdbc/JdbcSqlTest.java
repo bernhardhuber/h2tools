@@ -25,11 +25,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
@@ -59,16 +62,23 @@ public class JdbcSqlTest {
         }
     }
 
-    final DefaultDataSourceOrConnectionCreator defaultDataSourceOrConnectionCreator = new DefaultDataSourceOrConnectionCreator();
+    public static Stream<IConnectionFactory> streamOfIConnectionFactory() {
+        final DefaultDataSourceOrConnectionCreator defaultDataSourceOrConnectionCreator = new DefaultDataSourceOrConnectionCreator();
+        final DataSource jdbcConnectionPool = defaultDataSourceOrConnectionCreator.createJdbcConnectionPool();
+        final DataSource jdbcDataSource = defaultDataSourceOrConnectionCreator.createJdbcDataSource();
+        final Stream<IConnectionFactory> streamOfIConnectionFactory = Stream.of(
+                defaultDataSourceOrConnectionCreator.createConnectionFactoryWithDataSource(jdbcConnectionPool),
+                defaultDataSourceOrConnectionCreator.createConnectionFactoryWithDataSource(jdbcDataSource),
+                defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap()
+        );
+        return streamOfIConnectionFactory;
+    }
 
-    @Test
-    public void testNewInstance() throws SQLException {
-        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource
-                = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithDataSource(
-                        defaultDataSourceOrConnectionCreator.createJdbcDataSource()
-                );
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testNewInstance(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        try (final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithDataSource)) {
+        try (final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory)) {
             assertNotNull(jdbcSql);
             assertFalse(jdbcSql.isConnectionActive());
             jdbcSql.withConnection((final Connection connection) -> {
@@ -82,11 +92,11 @@ public class JdbcSqlTest {
         }
     }
 
-    @Test
-    public void testWithInstance() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testWithInstance(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
+        JdbcSql.withInstance(iconnectionFactory, (final JdbcSql jdbcSql) -> {
             assertFalse(jdbcSql.isConnectionActive());
             assertNotNull(jdbcSql);
             jdbcSql.withConnection((final Connection connection) -> {
@@ -100,11 +110,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testWithTransaction() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testWithTransaction_using_createConnectionFactoryWithMap(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
+        JdbcSql.withInstance(iconnectionFactory, (final JdbcSql jdbcSql) -> {
             assertFalse(jdbcSql.isConnectionActive());
             assertNotNull(jdbcSql);
             jdbcSql.withTransaction((final Connection connection) -> {
@@ -120,11 +130,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testWithTransactionThrowingException() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testWithTransactionThrowingException(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        JdbcSql.withInstance(connectionFactoryWithMap, (final JdbcSql jdbcSql) -> {
+        JdbcSql.withInstance(iconnectionFactory, (final JdbcSql jdbcSql) -> {
             assertFalse(jdbcSql.isConnectionActive());
             assertNotNull(jdbcSql);
 
@@ -149,11 +159,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testWithTransactionExecuteUpdateAndExecuteQuery() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testWithTransactionExecuteUpdateAndExecuteQuery(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
@@ -180,11 +190,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testExecuteUpdateWithParams() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testExecuteUpdateWithParams(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
@@ -213,11 +223,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testExecuteBatchWithParams() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testExecuteBatchWithParams(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
@@ -254,11 +264,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testEachRow() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testEachRow(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
@@ -291,11 +301,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testEachRowInExpanded() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testEachRowInExpanded(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
@@ -334,11 +344,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testEachRowInArray() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testEachRowInArray(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
@@ -377,11 +387,11 @@ public class JdbcSqlTest {
         });
     }
 
-    @Test
-    public void testEachRowUsingCreateMapFromResultSet() throws SQLException {
-        final ConnectionFactoryWithMap connectionFactoryWithMap = defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap();
+    @ParameterizedTest
+    @MethodSource(value = "streamOfIConnectionFactory")
+    public void testEachRowUsingCreateMapFromResultSet(IConnectionFactory iconnectionFactory) throws SQLException {
         //---
-        final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithMap);
+        final JdbcSql jdbcSql = JdbcSql.newInstance(iconnectionFactory);
         jdbcSql.withTransaction((final Connection connection) -> {
             {
                 for (final String sql : Arrays.asList(
