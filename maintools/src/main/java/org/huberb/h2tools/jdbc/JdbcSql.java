@@ -36,14 +36,6 @@ public class JdbcSql implements AutoCloseable {
     public static final ConsumerThrowingSQLException<ResultSetMetaData> EMPTY_RESULTSETMETADATA_CONSUMER = null;
     public static final List<Object> EMPTY_PARAMS = null;
 
-    final IConnectionFactory connectionFactory;
-    Optional<Connection> connectionOptional;
-
-    JdbcSql(IConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
-        this.connectionOptional = Optional.empty();
-    }
-
     /**
      * Create a new JdbcSql instance.
      *
@@ -67,6 +59,14 @@ public class JdbcSql implements AutoCloseable {
         try (JdbcSql jdbcSql = newInstance(iconnectionFactory)) {
             consumer.accept(jdbcSql);
         }
+    }
+
+    final IConnectionFactory connectionFactory;
+    Optional<Connection> connectionOptional;
+
+    JdbcSql(IConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+        this.connectionOptional = Optional.empty();
     }
 
     /**
