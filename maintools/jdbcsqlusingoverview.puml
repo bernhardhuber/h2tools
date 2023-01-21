@@ -1,0 +1,33 @@
+@startuml
+
+title JdbcSql Using Overview
+
+annotation java.lang.FunctionalInterface
+class java.sql.Connection
+class java.sql.PreparedStatement
+class java.sql.ResultSet
+class java.sql.ResultSetMetaData
+class java.sql.SQLException
+class org.huberb.h2tools.jdbc.JdbcSql {
+ withConnection()
+ withTransaction()
+ eachRow()
+ executeQuery()
+ executeUpdate()
+ executeBatch()
+}
+interface java.lang.AutoCloseable
+interface org.huberb.h2tools.jdbc.ConsumerThrowingSQLException
+
+org.huberb.h2tools.jdbc.JdbcSql .> org.huberb.h2tools.jdbc.ConsumerThrowingSQLException
+org.huberb.h2tools.jdbc.JdbcSql ..> java.sql.Connection
+org.huberb.h2tools.jdbc.JdbcSql ..> java.sql.PreparedStatement
+org.huberb.h2tools.jdbc.JdbcSql ..> java.sql.ResultSet
+org.huberb.h2tools.jdbc.JdbcSql ..> java.sql.ResultSetMetaData
+org.huberb.h2tools.jdbc.JdbcSql ..> java.sql.SQLException
+org.huberb.h2tools.jdbc.JdbcSql -|> java.lang.AutoCloseable 
+
+org.huberb.h2tools.jdbc.ConsumerThrowingSQLException .> java.lang.FunctionalInterface
+org.huberb.h2tools.jdbc.ConsumerThrowingSQLException ..> java.sql.SQLException
+
+@enduml

@@ -1,0 +1,24 @@
+= JdbcSql
+Simple jdbc sql library.
+:TOC:
+
+== SYNOPSIS
+
+....
+final String url = "jdbc:h2:mem:test1";
+final String username = "sa1";
+final String password = "sa1";
+final JdbcDataSource ds = new JdbcDataSource();
+ds.setURL(url);
+ds.setUser(username);
+ds.setPassword(password);
+
+final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(dataSource);
+
+try (final JdbcSql jdbcSql = JdbcSql.newInstance(connectionFactoryWithDataSource)) {
+  // use jdbcSql
+}
+....
+
+== DESCRIPTION
+

@@ -1,0 +1,36 @@
+@startuml
+
+title JdbcSql Instantiation Overview
+
+class java.sql.Connection
+class java.sql.DriverManager
+class java.sql.SQLException
+class javax.sql.DataSource
+class org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource
+class org.huberb.h2tools.jdbc.ConnectionFactoryWithMap
+
+interface org.huberb.h2tools.jdbc.IConnectionFactory {
++ Connection createConnection() throws SQLException;
+}
+
+class org.huberb.h2tools.jdbc.JdbcSql {
+~ JdbcSql(IConnectionFactory connectionFactory)
++ {static} JdbcSql newInstance(IConnectionFactory iconnectionFactory)
++ {static} void withInstance(IConnectionFactory iconnectionFactory, 
+  ConsumerThrowingSQLException<JdbcSql> consumer) throws SQLException
+}
+
+org.huberb.h2tools.jdbc.JdbcSql ..> org.huberb.h2tools.jdbc.IConnectionFactory
+org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource -|> org.huberb.h2tools.jdbc.IConnectionFactory
+org.huberb.h2tools.jdbc.ConnectionFactoryWithMap -|> org.huberb.h2tools.jdbc.IConnectionFactory
+
+org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource ..> java.sql.Connection
+org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource ..> java.sql.SQLException
+org.huberb.h2tools.jdbc.ConnectionFactoryWithDataSource ..> javax.sql.DataSource
+
+org.huberb.h2tools.jdbc.ConnectionFactoryWithMap ..> java.sql.Connection
+org.huberb.h2tools.jdbc.ConnectionFactoryWithMap ..> java.sql.DriverManager
+org.huberb.h2tools.jdbc.ConnectionFactoryWithMap ..> java.sql.SQLException
+
+
+@enduml
