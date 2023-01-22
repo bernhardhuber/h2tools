@@ -20,6 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,7 +47,7 @@ public class JdbcSqlF {
             }
         }
     }
-    
+
     public void processResultSet(Connection conn,
             String sql,
             ConsumerThrowingSQLException<ResultSet> c
@@ -56,7 +57,7 @@ public class JdbcSqlF {
         final FunctionThrowingSQLException<PreparedStatement, ResultSet> f2 = PreparedStatements.executeQuery();
         processResultSet(conn, f1, c0, f2, c);
     }
-    
+
     public void processResultSet(Connection conn,
             String sql, List<Object> params,
             ConsumerThrowingSQLException<ResultSet> c
@@ -64,7 +65,7 @@ public class JdbcSqlF {
         final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
         final ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.params(params);
         final FunctionThrowingSQLException<PreparedStatement, ResultSet> f2 = PreparedStatements.executeQuery();
-        
+
         processResultSet(conn, f1, c0, f2, c);
     }
 
@@ -73,18 +74,18 @@ public class JdbcSqlF {
             FunctionThrowingSQLException<Connection, PreparedStatement> f1,
             ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
         try (PreparedStatement ps = f1.apply(conn)) {
-            int updateCount = ps.executeUpdate();
             c.accept(ps);
+            final int updateCount = ps.executeUpdate();
             return updateCount;
         }
     }
-    
+
     public int executeUpdate(Connection conn,
             String sql) throws SQLException {
         final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
         return executeUpdate(conn, f1, JdbcSqlF.PreparedStatements.noop());
     }
-    
+
     public int executeUpdate(Connection conn,
             String sql, List<Object> params) throws SQLException {
         final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
@@ -96,37 +97,73 @@ public class JdbcSqlF {
     public int[] executeBatch(Connection conn,
             FunctionThrowingSQLException<Connection, PreparedStatement> f1,
             ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
-        
+
         try (PreparedStatement ps = f1.apply(conn)) {
             c.accept(ps);
             int[] updates = ps.executeBatch();
             return updates;
         }
     }
-    
+
     public int[] executeBatch(Connection conn,
             String sql, List<List<Object>> paramsList) throws SQLException {
         FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
-        ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.paramsList(paramsList);
+        ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.batchParamsList(paramsList);
         return executeBatch(conn, f1, c0);
     }
-    
+
     public static class Connections {
-        
+
+        /**
+         * Create a {@link Connection} from a {@link DataSource}, and use the
+         * connection via a consumer function.
+         *
+         * @param dataSource
+         * @param connectionConsumer
+         * @throws SQLException if creating connections fails, or consumer
+         * fails.
+         */
         public static void withDataSource(DataSource dataSource,
-                ConsumerThrowingSQLException<Connection> c) throws SQLException {
+                ConsumerThrowingSQLException<Connection> connectionConsumer) throws SQLException {
             try (Connection connection = dataSource.getConnection()) {
-                c.accept(connection);
+                connectionConsumer.accept(connection);
             }
         }
-        
+
         public static void withConnection(Connection connection,
                 ConsumerThrowingSQLException<Connection> c) throws SQLException {
             try (connection) {
                 c.accept(connection);
             }
         }
-        
+
+        public static void withTransactionSavepoint(Connection connection,
+                String savePointName,
+                ConsumerThrowingSQLException<Connection> c) throws SQLException {
+            final Savepoint savePoint = connection.setSavepoint(savePointName);
+            try {
+                connection.setAutoCommit(false);
+                c.accept(connection);
+                connection.commit();
+            } catch (Exception ex) {
+                connection.rollback(savePoint);
+            }
+        }
+
+        /**
+         * Begin a connection transaction and use the connection via a consumer
+         * function.
+         * <p>
+         * This implementation commits the transaction if no exception is thrown
+         * otherwise the started transaction is rollbacked.
+         * <p>
+         * As a side-effect this implementation set {@link Connection#setAutoCommit(boolean)
+         * } always to {@code false}.
+         *
+         * @param connection
+         * @param c
+         * @throws SQLException
+         */
         public static void withTransaction(Connection connection,
                 ConsumerThrowingSQLException<Connection> c) throws SQLException {
             try {
@@ -135,13 +172,25 @@ public class JdbcSqlF {
                 connection.commit();
             } catch (Exception ex) {
                 connection.rollback();
+                if (ex instanceof SQLException) {
+                    throw ex;
+                } else {
+                    throw new SQLException("withTransaction", ex);
+                }
             }
         }
-        
+
+        /**
+         * Create a {@link PreparedStatement}.
+         *
+         * @param sql
+         * @return function that creates a {@link PreparedStatement} from a
+         * {@link Connection}.
+         */
         public static FunctionThrowingSQLException<Connection, PreparedStatement> createPreparedStatement(String sql) {
             return (connection) -> connection.prepareStatement(sql);
         }
-        
+
         public static FunctionThrowingSQLException<Connection, Map<String, Object>> getConnectionInfos() {
             return (connection) -> {
                 Map<String, Object> map = new HashMap<String, Object>() {
@@ -160,16 +209,21 @@ public class JdbcSqlF {
                 return map;
             };
         }
-        
     }
-    
+
     public static class PreparedStatements {
-        
+
         public static ConsumerThrowingSQLException<PreparedStatement> noop() {
             return (ps) -> {
             };
         }
-        
+
+        /**
+         * Consume a {@link PreparedStatement}for setting its parameters.
+         *
+         * @param params
+         * @return a {@link Consumer} setting the parameters.
+         */
         public static ConsumerThrowingSQLException<PreparedStatement> params(List<Object> params) {
             return (PreparedStatement ps) -> {
                 if (params != null) {
@@ -180,8 +234,8 @@ public class JdbcSqlF {
                 }
             };
         }
-        
-        public static ConsumerThrowingSQLException<PreparedStatement> paramsList(List<List<Object>> paramsList) {
+
+        public static ConsumerThrowingSQLException<PreparedStatement> batchParamsList(List<List<Object>> paramsList) {
             return (PreparedStatement ps) -> {
                 if (paramsList != null) {
                     for (List<Object> params : paramsList) {
@@ -195,24 +249,24 @@ public class JdbcSqlF {
                 }
             };
         }
-        
+
         public static FunctionThrowingSQLException<PreparedStatement, ResultSet> executeQuery() {
             return (ps) -> ps.executeQuery();
         }
     }
-    
+
     public static class ResultSets {
-        
+
         static ConsumerThrowingSQLException<ResultSet> allResultSets(ConsumerThrowingSQLException<ResultSet> innerConsumer) {
             ConsumerThrowingSQLException<ResultSet> outerConsumer = (rs) -> {
                 while (rs.next()) {
                     innerConsumer.accept(rs);
                 }
-                
+
             };
             return outerConsumer;
         }
-        
+
         static ConsumerThrowingSQLException<ResultSet> firstResultSetOnly(ConsumerThrowingSQLException<ResultSet> innerConsumer) {
             return (rs) -> {
                 rs.next();
@@ -231,34 +285,34 @@ public class JdbcSqlF {
             }
             return l;
         }
-        
+
         static <T> List<T> convertResultSets(ResultSet rs, FunctionThrowingSQLException<ResultSet, T> f) throws SQLException {
             return convertResultSets(rs, 0, -1, f);
         }
-        
+
         static Iterator<ResultSet> resultSetIterator(ResultSet rs, int offset, int limit) {
             return new ResultSetIterator(rs, offset, limit);
         }
-        
+
         static class ResultSetIterator implements Iterator<ResultSet> {
-            
+
             final ResultSet rs;
             final int offset;
             final int limit;
             int countNextCalled = 0;
-            
+
             public ResultSetIterator(ResultSet rs, int offset, int limit) {
                 this.rs = rs;
                 this.offset = offset;
                 this.limit = limit > 0 ? limit : -1;
-                
+
                 try {
                     this.rs.absolute(this.offset);
                 } catch (SQLException sqlex) {
                     throw new RuntimeException("hasNext", sqlex);
                 }
             }
-            
+
             @Override
             public boolean hasNext() {
                 try {
@@ -269,7 +323,7 @@ public class JdbcSqlF {
                     throw new RuntimeException("hasNext", sqlex);
                 }
             }
-            
+
             @Override
             public ResultSet next() {
                 try {
@@ -280,7 +334,7 @@ public class JdbcSqlF {
                     throw new RuntimeException("next", sqlex);
                 }
             }
-            
+
         }
 
         //---
@@ -295,7 +349,7 @@ public class JdbcSqlF {
                 return l;
             };
         }
-        
+
         static FunctionThrowingSQLException<ResultSet, Map<String, Object>> convertResultSetToMap() {
             return (rs) -> {
                 final ResultSetMetaData metaData = rs.getMetaData();
@@ -316,7 +370,7 @@ public class JdbcSqlF {
             };
         }
     }
-    
+
     @FunctionalInterface
     public static interface FunctionThrowingSQLException<T, R> {
 
@@ -327,25 +381,25 @@ public class JdbcSqlF {
          * @throws java.sql.SQLException
          */
         R apply(T t) throws SQLException;
-        
+
     }
-    
+
     public static class Holder<T> {
-        
+
         private T t;
-        
+
         public Holder() {
             this(null);
         }
-        
+
         public Holder(T initial) {
             this.t = t;
         }
-        
+
         public T get() {
             return t;
         }
-        
+
         public void set(T t) {
             this.t = t;
         }
