@@ -184,7 +184,6 @@ public class JdbcSqlF {
                 innerConsumer.accept(rs);
             };
         }
-
     }
 
     @FunctionalInterface
