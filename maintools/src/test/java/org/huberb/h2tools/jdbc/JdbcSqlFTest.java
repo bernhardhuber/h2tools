@@ -66,15 +66,13 @@ public class JdbcSqlFTest {
         }
     }
     final ConsumerThrowingSQLException<Connection> createTable = (connection) -> {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
-        final int updateCount = jdbcSqlF.executeUpdate(connection,
+        final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                 SqlStatements.createTable.sql());
         assertEquals(0, updateCount);
 
     };
     final ConsumerThrowingSQLException<Connection> dropTable = (connection) -> {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
-        final int updateCount = jdbcSqlF.executeUpdate(connection,
+        final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                 SqlStatements.dropTable.sql());
         assertEquals(0, updateCount);
     };
@@ -96,7 +94,6 @@ public class JdbcSqlFTest {
 
     @Test
     public void test_insert_query_count_resultset() throws SQLException {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
 
         final ConsumerThrowingSQLException<Connection> insertValues = (connection) -> {
             //---
@@ -104,7 +101,7 @@ public class JdbcSqlFTest {
                     SqlStatements.insertID_1,
                     SqlStatements.insertID_2,
                     SqlStatements.insertID_3)) {
-                final int updateCount = jdbcSqlF.executeUpdate(connection,
+                final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                         sqlStatement.sql());
                 assertEquals(1, updateCount);
             }
@@ -120,7 +117,7 @@ public class JdbcSqlFTest {
 
                 // 3. query rows
                 final AtomicInteger ai = new AtomicInteger(0);
-                jdbcSqlF.processResultSet(connectionInTransaction,
+                JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                         SqlStatements.selectAll.sql(),
                         JdbcSqlF.ResultSets.allResultSets((rs) -> ai.incrementAndGet()));
                 assertEquals(3, ai.intValue());
@@ -134,7 +131,6 @@ public class JdbcSqlFTest {
 
     @Test
     public void test_insert_query_count() throws SQLException {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
 
         final ConsumerThrowingSQLException<Connection> insertValues = (connection) -> {
             //---
@@ -142,7 +138,7 @@ public class JdbcSqlFTest {
                     SqlStatements.insertID_1,
                     SqlStatements.insertID_2,
                     SqlStatements.insertID_3)) {
-                final int updateCount = jdbcSqlF.executeUpdate(connection,
+                final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                         sqlStatement.sql());
                 assertEquals(1, updateCount);
             }
@@ -158,7 +154,7 @@ public class JdbcSqlFTest {
 
                 // 3. query rows
                 Holder<Integer> hi = new Holder<>(0);
-                jdbcSqlF.processResultSet(connectionInTransaction,
+                JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                         SqlStatements.selectCountAll.sql(),
                         JdbcSqlF.ResultSets.firstResultSetOnly((rs) -> {
                             int value = rs.getInt(1);
@@ -175,7 +171,6 @@ public class JdbcSqlFTest {
 
     @Test
     public void test_insert_query_names() throws SQLException {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
 
         final ConsumerThrowingSQLException<Connection> insertValues = (connection) -> {
             //---
@@ -183,7 +178,7 @@ public class JdbcSqlFTest {
                     SqlStatements.insertID_1,
                     SqlStatements.insertID_2,
                     SqlStatements.insertID_3)) {
-                final int updateCount = jdbcSqlF.executeUpdate(connection,
+                final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                         sqlStatement.sql());
                 assertEquals(1, updateCount);
             }
@@ -199,7 +194,7 @@ public class JdbcSqlFTest {
 
                 // 3. query rows
                 final List<String> names = new ArrayList<>();
-                jdbcSqlF.processResultSet(connectionInTransaction,
+                JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                         SqlStatements.selectAll.sql,
                         JdbcSqlF.ResultSets.allResultSets((rs) -> names.add(rs.getString("NAME"))));
                 String m = String.format("names %s", names);
@@ -219,7 +214,6 @@ public class JdbcSqlFTest {
 
     @Test
     public void test_insert_query_names_with_params() throws SQLException {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
 
         final ConsumerThrowingSQLException<Connection> insertValues = (connection) -> {
             //---
@@ -227,7 +221,7 @@ public class JdbcSqlFTest {
                     SqlStatements.insertID_1,
                     SqlStatements.insertID_2,
                     SqlStatements.insertID_3)) {
-                final int updateCount = jdbcSqlF.executeUpdate(connection,
+                final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                         sqlStatement.sql());
                 assertEquals(1, updateCount);
             }
@@ -244,7 +238,7 @@ public class JdbcSqlFTest {
                 // 3. query row 1
                 {
                     final List<String> names = new ArrayList<>();
-                    jdbcSqlF.processResultSet(connectionInTransaction,
+                    JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                             SqlStatements.selectByID.sql, Arrays.asList(1),
                             JdbcSqlF.ResultSets.allResultSets((rs) -> names.add(rs.getString("NAME")))
                     );
@@ -256,7 +250,7 @@ public class JdbcSqlFTest {
                 }
                 {
                     // 4. update row 1
-                    int updateCount = jdbcSqlF.executeUpdate(connectionInTransaction,
+                    int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connectionInTransaction,
                             SqlStatements.updateID_1_PARAM.sql(),
                             Arrays.asList("HELLO ROW 1"));
                     assertEquals(1, updateCount);
@@ -264,7 +258,7 @@ public class JdbcSqlFTest {
                 // 5. query row 1 again
                 {
                     final List<String> names = new ArrayList<>();
-                    jdbcSqlF.processResultSet(connectionInTransaction,
+                    JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                             SqlStatements.selectByID.sql, Arrays.asList(1),
                             JdbcSqlF.ResultSets.allResultSets((rs) -> names.add(rs.getString("NAME")))
                     );
@@ -283,7 +277,6 @@ public class JdbcSqlFTest {
 
     @Test
     public void test_insert_query_delete_names() throws SQLException {
-        final JdbcSqlF jdbcSqlF = new JdbcSqlF();
 
         final ConsumerThrowingSQLException<Connection> insertValues = (connection) -> {
             //---
@@ -291,7 +284,7 @@ public class JdbcSqlFTest {
                     SqlStatements.insertID_1,
                     SqlStatements.insertID_2,
                     SqlStatements.insertID_3)) {
-                final int updateCount = jdbcSqlF.executeUpdate(connection,
+                final int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connection,
                         sqlStatement.sql());
                 assertEquals(1, updateCount);
             }
@@ -308,7 +301,7 @@ public class JdbcSqlFTest {
                 // 3. query rows
                 {
                     final List<String> names = new ArrayList<>();
-                    jdbcSqlF.processResultSet(connectionInTransaction,
+                    JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                             SqlStatements.selectAll.sql,
                             JdbcSqlF.ResultSets.allResultSets((rs) -> names.add(rs.getString("NAME")))
                     );
@@ -322,14 +315,14 @@ public class JdbcSqlFTest {
                 }
                 {
                     // 4. delete row 2
-                    int updateCount = jdbcSqlF.executeUpdate(connectionInTransaction,
+                    int updateCount = JdbcSqlF.UpdateCommands.executeUpdate(connectionInTransaction,
                             SqlStatements.deleteID_2.sql());
                     assertEquals(1, updateCount);
                 }
                 // 5. query rows again
                 {
                     final List<String> names = new ArrayList<>();
-                    jdbcSqlF.processResultSet(connectionInTransaction,
+                    JdbcSqlF.ResultSetCommands.processResultSet(connectionInTransaction,
                             SqlStatements.selectAll.sql,
                             JdbcSqlF.ResultSets.allResultSets((rs) -> names.add(rs.getString("NAME")))
                     );
@@ -349,7 +342,6 @@ public class JdbcSqlFTest {
 
     @Test
     public void test_infos() throws SQLException {
-        JdbcSqlF jdbcSqlF = new JdbcSqlF();
 
         JdbcSqlF.Connections.withDataSource(jdbcConnectionPool, (Connection connection1) -> {
             final Map<String, Object> connectionInfos = JdbcSqlF.Connections.getConnectionInfos().apply(connection1);

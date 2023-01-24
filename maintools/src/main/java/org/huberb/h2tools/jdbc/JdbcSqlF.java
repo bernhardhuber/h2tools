@@ -34,82 +34,99 @@ import javax.sql.DataSource;
  */
 public class JdbcSqlF {
 
-    //---
-    public void processResultSet(Connection conn,
-            FunctionThrowingSQLException<Connection, PreparedStatement> f1,
-            ConsumerThrowingSQLException<PreparedStatement> c0,
-            FunctionThrowingSQLException<PreparedStatement, ResultSet> f2,
-            ConsumerThrowingSQLException<ResultSet> c) throws SQLException {
-        try (final PreparedStatement ps = f1.apply(conn)) {
-            c0.accept(ps);
-            try (final ResultSet rs = f2.apply(ps)) {
-                c.accept(rs);
+    public static class ResultSetCommands {
+        //---
+
+        public static void consumeResultSet(Connection conn,
+                FunctionThrowingSQLException<Connection, PreparedStatement> createPreparedStatement,
+                ConsumerThrowingSQLException<PreparedStatement> consumerPreparedStatement,
+                FunctionThrowingSQLException<PreparedStatement, ResultSet> createResultSet,
+                ConsumerThrowingSQLException<ResultSet> consumeResult) throws SQLException {
+            try (final PreparedStatement ps = createPreparedStatement.apply(conn)) {
+                consumerPreparedStatement.accept(ps);
+                try (final ResultSet rs = createResultSet.apply(ps)) {
+                    consumeResult.accept(rs);
+                }
             }
         }
-    }
 
-    public void processResultSet(Connection conn,
-            String sql,
-            ConsumerThrowingSQLException<ResultSet> c
-    ) throws SQLException {
-        final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
-        final ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.noop();
-        final FunctionThrowingSQLException<PreparedStatement, ResultSet> f2 = PreparedStatements.executeQuery();
-        processResultSet(conn, f1, c0, f2, c);
-    }
+        public static void processResultSet(Connection conn,
+                String sql,
+                ConsumerThrowingSQLException<ResultSet> consumeResultSet
+        ) throws SQLException {
+            final FunctionThrowingSQLException<Connection, PreparedStatement> createPreparedStatement = Connections.createPreparedStatement(sql);
+            final ConsumerThrowingSQLException<PreparedStatement> consumePreparedStatement = JdbcSqlF.PreparedStatements.noop();
+            final FunctionThrowingSQLException<PreparedStatement, ResultSet> createResultSet = PreparedStatements.executeQuery();
+            consumeResultSet(conn,
+                    createPreparedStatement,
+                    consumePreparedStatement,
+                    createResultSet,
+                    consumeResultSet);
+        }
 
-    public void processResultSet(Connection conn,
-            String sql, List<Object> params,
-            ConsumerThrowingSQLException<ResultSet> c
-    ) throws SQLException {
-        final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
-        final ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.params(params);
-        final FunctionThrowingSQLException<PreparedStatement, ResultSet> f2 = PreparedStatements.executeQuery();
+        public static void processResultSet(Connection conn,
+                String sql, List<Object> params,
+                ConsumerThrowingSQLException<ResultSet> consumeResultSet
+        ) throws SQLException {
+            final FunctionThrowingSQLException<Connection, PreparedStatement> createPreparedStatement = Connections.createPreparedStatement(sql);
+            final ConsumerThrowingSQLException<PreparedStatement> consumePreparedStatement = JdbcSqlF.PreparedStatements.params(params);
+            final FunctionThrowingSQLException<PreparedStatement, ResultSet> createResultSet = PreparedStatements.executeQuery();
 
-        processResultSet(conn, f1, c0, f2, c);
-    }
-
-    //---
-    public int executeUpdate(Connection conn,
-            FunctionThrowingSQLException<Connection, PreparedStatement> f1,
-            ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
-        try (PreparedStatement ps = f1.apply(conn)) {
-            c.accept(ps);
-            final int updateCount = ps.executeUpdate();
-            return updateCount;
+            consumeResultSet(conn,
+                    createPreparedStatement,
+                    consumePreparedStatement,
+                    createResultSet,
+                    consumeResultSet);
         }
     }
-
-    public int executeUpdate(Connection conn,
-            String sql) throws SQLException {
-        final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
-        return executeUpdate(conn, f1, JdbcSqlF.PreparedStatements.noop());
-    }
-
-    public int executeUpdate(Connection conn,
-            String sql, List<Object> params) throws SQLException {
-        final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
-        final ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.params(params);
-        return executeUpdate(conn, f1, c0);
-    }
-
     //---
-    public int[] executeBatch(Connection conn,
-            FunctionThrowingSQLException<Connection, PreparedStatement> f1,
-            ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
 
-        try (PreparedStatement ps = f1.apply(conn)) {
-            c.accept(ps);
-            int[] updates = ps.executeBatch();
-            return updates;
+    public static class UpdateCommands {
+
+        public static int executeUpdate(Connection conn,
+                FunctionThrowingSQLException<Connection, PreparedStatement> f1,
+                ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
+            try (PreparedStatement ps = f1.apply(conn)) {
+                c.accept(ps);
+                final int updateCount = ps.executeUpdate();
+                return updateCount;
+            }
+        }
+
+        public static int executeUpdate(Connection conn,
+                String sql) throws SQLException {
+            final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
+            return executeUpdate(conn, f1, JdbcSqlF.PreparedStatements.noop());
+        }
+
+        public static int executeUpdate(Connection conn,
+                String sql, List<Object> params) throws SQLException {
+            final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
+            final ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.params(params);
+            return executeUpdate(conn, f1, c0);
         }
     }
+    //---
 
-    public int[] executeBatch(Connection conn,
-            String sql, List<List<Object>> paramsList) throws SQLException {
-        FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
-        ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.batchParamsList(paramsList);
-        return executeBatch(conn, f1, c0);
+    public static class BatchCommands {
+
+        public static int[] executeBatch(Connection conn,
+                FunctionThrowingSQLException<Connection, PreparedStatement> f1,
+                ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
+
+            try (PreparedStatement ps = f1.apply(conn)) {
+                c.accept(ps);
+                int[] updates = ps.executeBatch();
+                return updates;
+            }
+        }
+
+        public static int[] executeBatch(Connection conn,
+                String sql, List<List<Object>> paramsList) throws SQLException {
+            FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
+            ConsumerThrowingSQLException<PreparedStatement> c0 = JdbcSqlF.PreparedStatements.batchParamsList(paramsList);
+            return executeBatch(conn, f1, c0);
+        }
     }
 
     public static class Connections {
