@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
+import org.huberb.h2tools.jdbc.Supports.ConsumerThrowingSQLException;
+import org.huberb.h2tools.jdbc.Supports.FunctionThrowingSQLException;
 
 /**
  *
@@ -388,37 +390,4 @@ public class JdbcSqlF {
         }
     }
 
-    @FunctionalInterface
-    public static interface FunctionThrowingSQLException<T, R> {
-
-        /**
-         * Performs this operation on the given argument.
-         *
-         * @param t the input argument
-         * @throws java.sql.SQLException
-         */
-        R apply(T t) throws SQLException;
-
-    }
-
-    public static class Holder<T> {
-
-        private T t;
-
-        public Holder() {
-            this(null);
-        }
-
-        public Holder(T initial) {
-            this.t = t;
-        }
-
-        public T get() {
-            return t;
-        }
-
-        public void set(T t) {
-            this.t = t;
-        }
-    }
 }

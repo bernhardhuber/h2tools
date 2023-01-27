@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.huberb.h2tools.jdbc.Supports.ConsumerThrowingSQLException;
 
 /**
  * Wrapper around jdbc operations.
