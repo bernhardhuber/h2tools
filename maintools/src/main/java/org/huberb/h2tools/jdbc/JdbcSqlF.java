@@ -16,6 +16,7 @@
 package org.huberb.h2tools.jdbc;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.sql.DataSource;
 import org.huberb.h2tools.jdbc.Supports.ConsumerThrowingSQLException;
 import org.huberb.h2tools.jdbc.Supports.FunctionThrowingSQLException;
@@ -35,7 +37,7 @@ import org.huberb.h2tools.jdbc.Supports.FunctionThrowingSQLException;
  * @author berni3
  */
 public class JdbcSqlF {
-
+    
     public static class ResultSetCommands {
         //---
 
@@ -51,7 +53,7 @@ public class JdbcSqlF {
                 }
             }
         }
-
+        
         public static void processResultSet(Connection conn,
                 String sql,
                 ConsumerThrowingSQLException<ResultSet> consumeResultSet
@@ -65,7 +67,7 @@ public class JdbcSqlF {
                     createResultSet,
                     consumeResultSet);
         }
-
+        
         public static void processResultSet(Connection conn,
                 String sql, List<Object> params,
                 ConsumerThrowingSQLException<ResultSet> consumeResultSet
@@ -73,7 +75,7 @@ public class JdbcSqlF {
             final FunctionThrowingSQLException<Connection, PreparedStatement> createPreparedStatement = Connections.createPreparedStatement(sql);
             final ConsumerThrowingSQLException<PreparedStatement> consumePreparedStatement = JdbcSqlF.PreparedStatements.params(params);
             final FunctionThrowingSQLException<PreparedStatement, ResultSet> createResultSet = PreparedStatements.executeQuery();
-
+            
             consumeResultSet(conn,
                     createPreparedStatement,
                     consumePreparedStatement,
@@ -84,7 +86,7 @@ public class JdbcSqlF {
     //---
 
     public static class UpdateCommands {
-
+        
         public static int executeUpdate(Connection conn,
                 FunctionThrowingSQLException<Connection, PreparedStatement> f1,
                 ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
@@ -94,13 +96,13 @@ public class JdbcSqlF {
                 return updateCount;
             }
         }
-
+        
         public static int executeUpdate(Connection conn,
                 String sql) throws SQLException {
             final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
             return executeUpdate(conn, f1, JdbcSqlF.PreparedStatements.noop());
         }
-
+        
         public static int executeUpdate(Connection conn,
                 String sql, List<Object> params) throws SQLException {
             final FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
@@ -111,18 +113,18 @@ public class JdbcSqlF {
     //---
 
     public static class BatchCommands {
-
+        
         public static int[] executeBatch(Connection conn,
                 FunctionThrowingSQLException<Connection, PreparedStatement> f1,
                 ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
-
+            
             try (PreparedStatement ps = f1.apply(conn)) {
                 c.accept(ps);
                 int[] updates = ps.executeBatch();
                 return updates;
             }
         }
-
+        
         public static int[] executeBatch(Connection conn,
                 String sql, List<List<Object>> paramsList) throws SQLException {
             FunctionThrowingSQLException<Connection, PreparedStatement> f1 = Connections.createPreparedStatement(sql);
@@ -130,7 +132,7 @@ public class JdbcSqlF {
             return executeBatch(conn, f1, c0);
         }
     }
-
+    
     public static class Connections {
 
         /**
@@ -148,14 +150,14 @@ public class JdbcSqlF {
                 connectionConsumer.accept(connection);
             }
         }
-
+        
         public static void withConnection(Connection connection,
                 ConsumerThrowingSQLException<Connection> c) throws SQLException {
             try (connection) {
                 c.accept(connection);
             }
         }
-
+        
         public static void withTransactionSavepoint(Connection connection,
                 String savePointName,
                 ConsumerThrowingSQLException<Connection> c) throws SQLException {
@@ -209,29 +211,71 @@ public class JdbcSqlF {
         public static FunctionThrowingSQLException<Connection, PreparedStatement> createPreparedStatement(String sql) {
             return (connection) -> connection.prepareStatement(sql);
         }
-
+        
         public static FunctionThrowingSQLException<Connection, Map<String, Object>> getConnectionInfos() {
             return (connection) -> {
+                Map<String, Object> metaDataMap = new HashMap<String, Object>() {
+                    {
+                        DatabaseMetaData metaData = connection.getMetaData();
+                        put("metaData.CatalogSeparator", metaData.getCatalogSeparator());
+                        put("metaData.CatalogTerm", metaData.getCatalogTerm());
+                        put("metaData.CatalogTerm", metaData.getCatalogTerm());
+                        put("metaData.DatabaseMajorVersion", metaData.getDatabaseMajorVersion());
+                        put("metaData.DatabaseMinorVersion", metaData.getDatabaseMinorVersion());
+                        put("metaData.DatabaseProductName", metaData.getDatabaseProductName());
+                        put("metaData.DatabaseProductVersion", metaData.getDatabaseProductVersion());
+                        put("metaData.DefaultTransactionIsolation", metaData.getDefaultTransactionIsolation());
+                        put("metaData.DriverMajorVersion", metaData.getDriverMajorVersion());
+                        put("metaData.DriverMinorVersion", metaData.getDriverMinorVersion());
+                        put("metaData.DriverName", metaData.getDriverName());
+                        put("metaData.DriverVersion", metaData.getDriverVersion());
+                        put("metaData.ExtraNameCharacters", metaData.getExtraNameCharacters());
+                        put("metaData.IdentifierQuoteString", metaData.getIdentifierQuoteString());
+                        put("metaData.JDBCMajorVersion", metaData.getJDBCMajorVersion());
+                        put("metaData.JDBCMinorVersion", metaData.getJDBCMinorVersion());
+                        put("metaData.MaxBinaryLiteralLength", metaData.getMaxBinaryLiteralLength());
+                        put("metaData.MaxCatalogNameLength", metaData.getMaxCatalogNameLength());
+                        put("metaData.MaxCharLiteralLength", metaData.getMaxCharLiteralLength());
+                        put("metaData.MaxColumnNameLength", metaData.getMaxColumnNameLength());
+                        put("metaData.MaxColumnsInGroupBy", metaData.getMaxColumnsInGroupBy());
+                        put("metaData.MaxColumnsInIndex", metaData.getMaxColumnsInIndex());
+                        put("metaData.MaxColumnsInOrderBy", metaData.getMaxColumnsInOrderBy());
+                        put("metaData.MaxColumnsInSelect", metaData.getMaxColumnsInSelect());
+                        put("metaData.MaxColumnsInTable", metaData.getMaxColumnsInTable());
+                        put("metaData.MaxConnections", metaData.getMaxConnections());
+                        put("metaData.MaxCursorNameLength", metaData.getMaxCursorNameLength());
+                        put("metaData.MaxIndexLength", metaData.getMaxIndexLength());
+                        put("metaData.MaxLogicalLobSize", metaData.getMaxLogicalLobSize());
+                        put("metaData.MaxProcedureNameLength", metaData.getMaxProcedureNameLength());
+                        put("metaData.MaxRowSize", metaData.getMaxRowSize());
+                        put("metaData.MaxSchemaNameLength", metaData.getMaxSchemaNameLength());
+                        put("metaData.MaxStatementLength", metaData.getMaxStatementLength());
+                        put("metaData.MaxStatements", metaData.getMaxStatements());
+                        put("metaData.MaxTableNameLength", metaData.getMaxTableNameLength());
+                        put("metaData.MaxTablesInSelect", metaData.getMaxTablesInSelect());
+                        put("metaData.MaxUserNameLength", metaData.getMaxUserNameLength());
+                    }
+                };
                 Map<String, Object> map = new HashMap<String, Object>() {
                     {
                         put("autoCommit", connection.getAutoCommit());
                         put("catalog", connection.getCatalog());
                         put("clientInfo", connection.getClientInfo());
                         put("holdability", connection.getHoldability());
-                        put("metaData", connection.getMetaData());
                         put("networkTimeout", connection.getNetworkTimeout());
                         put("schema", connection.getSchema());
                         put("tansactionIsolation", connection.getTransactionIsolation());
                         put("warnings", connection.getWarnings());
                     }
                 };
+                map.putAll(metaDataMap);
                 return map;
             };
         }
     }
-
+    
     public static class PreparedStatements {
-
+        
         public static ConsumerThrowingSQLException<PreparedStatement> noop() {
             return (ps) -> {
             };
@@ -253,7 +297,7 @@ public class JdbcSqlF {
                 }
             };
         }
-
+        
         public static ConsumerThrowingSQLException<PreparedStatement> batchParamsList(List<List<Object>> paramsList) {
             return (PreparedStatement ps) -> {
                 if (paramsList != null) {
@@ -268,24 +312,24 @@ public class JdbcSqlF {
                 }
             };
         }
-
+        
         public static FunctionThrowingSQLException<PreparedStatement, ResultSet> executeQuery() {
             return (ps) -> ps.executeQuery();
         }
     }
-
+    
     public static class ResultSets {
-
+        
         static ConsumerThrowingSQLException<ResultSet> allResultSets(ConsumerThrowingSQLException<ResultSet> innerConsumer) {
             ConsumerThrowingSQLException<ResultSet> outerConsumer = (rs) -> {
                 while (rs.next()) {
                     innerConsumer.accept(rs);
                 }
-
+                
             };
             return outerConsumer;
         }
-
+        
         static ConsumerThrowingSQLException<ResultSet> firstResultSetOnly(ConsumerThrowingSQLException<ResultSet> innerConsumer) {
             return (rs) -> {
                 rs.next();
@@ -304,34 +348,34 @@ public class JdbcSqlF {
             }
             return l;
         }
-
+        
         static <T> List<T> convertResultSets(ResultSet rs, FunctionThrowingSQLException<ResultSet, T> f) throws SQLException {
             return convertResultSets(rs, 0, -1, f);
         }
-
+        
         static Iterator<ResultSet> resultSetIterator(ResultSet rs, int offset, int limit) {
             return new ResultSetIterator(rs, offset, limit);
         }
-
+        
         static class ResultSetIterator implements Iterator<ResultSet> {
-
+            
             final ResultSet rs;
             final int offset;
             final int limit;
             int countNextCalled = 0;
-
+            
             public ResultSetIterator(ResultSet rs, int offset, int limit) {
                 this.rs = rs;
                 this.offset = offset;
                 this.limit = limit > 0 ? limit : -1;
-
+                
                 try {
                     this.rs.absolute(this.offset);
                 } catch (SQLException sqlex) {
                     throw new RuntimeException("hasNext", sqlex);
                 }
             }
-
+            
             @Override
             public boolean hasNext() {
                 try {
@@ -342,7 +386,7 @@ public class JdbcSqlF {
                     throw new RuntimeException("hasNext", sqlex);
                 }
             }
-
+            
             @Override
             public ResultSet next() {
                 try {
@@ -353,7 +397,7 @@ public class JdbcSqlF {
                     throw new RuntimeException("next", sqlex);
                 }
             }
-
+            
         }
 
         //---
@@ -368,7 +412,7 @@ public class JdbcSqlF {
                 return l;
             };
         }
-
+        
         static FunctionThrowingSQLException<ResultSet, Map<String, Object>> convertResultSetToMap() {
             return (rs) -> {
                 final ResultSetMetaData metaData = rs.getMetaData();
@@ -389,5 +433,5 @@ public class JdbcSqlF {
             };
         }
     }
-
+    
 }
