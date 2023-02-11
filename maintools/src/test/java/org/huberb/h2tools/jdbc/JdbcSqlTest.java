@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
+import org.huberb.h2tools.jdbc.Supports.ConsumerThrowingSQLException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,8 +42,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class JdbcSqlTest {
 
     enum SqlStatements {
-        dropTable("DROP TABLE IF EXISTS TEST"),
+        //---
         createTable("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))"),
+        dropTable("DROP TABLE IF EXISTS TEST"),
+        //---
         insertID_1("INSERT INTO TEST VALUES(1, 'Hello')"),
         insertID_2("INSERT INTO TEST VALUES(2, 'World')"),
         insertID_3("INSERT INTO TEST VALUES(3, 'H2')"),

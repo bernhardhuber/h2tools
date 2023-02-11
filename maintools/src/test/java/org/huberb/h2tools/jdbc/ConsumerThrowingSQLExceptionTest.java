@@ -18,6 +18,7 @@ package org.huberb.h2tools.jdbc;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.huberb.h2tools.jdbc.Supports.ConsumerThrowingSQLException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
