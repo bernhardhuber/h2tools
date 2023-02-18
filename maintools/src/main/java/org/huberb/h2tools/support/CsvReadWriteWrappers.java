@@ -73,8 +73,7 @@ public class CsvReadWriteWrappers {
 
         int writeTo(ResultSet resultSet) throws CsvReaderWriteWrappersRuntimeException {
             try (resultSet) {
-                final int rowsWritten = this.csv.write(writer, resultSet);
-                return rowsWritten;
+                return this.csv.write(writer, resultSet);
             } catch (SQLException sqlException) {
                 throw new CsvReaderWriteWrappersRuntimeException("writeTo", sqlException);
             }
@@ -97,8 +96,7 @@ public class CsvReadWriteWrappers {
                     final String charsetAsString = options.getOrDefault("charset", null);
                     final Charset charset = charsetAsString != null ? Charset.forName(charsetAsString) : Charset.defaultCharset();
                     final Writer w = new FileWriter(outFilename, charset);
-                    final CsvWriter csvWriter = new CsvWriter(w, options);
-                    return csvWriter;
+                    return new CsvWriter(w, options);
                 } catch (IOException ioException) {
                     throw new CsvReaderWriteWrappersRuntimeException("create", ioException);
                 }
@@ -179,8 +177,7 @@ public class CsvReadWriteWrappers {
                 final String charsetAsString = options.getOrDefault("charset", null);
                 final Charset charset = charsetAsString != null ? Charset.forName(charsetAsString) : Charset.defaultCharset();
                 final Reader r = new FileReader(inFilename, charset);
-                final CsvReader csvReader = new CsvReader(r, options, colNames);
-                return csvReader;
+                return new CsvReader(r, options, colNames);
             }
         }
 

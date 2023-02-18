@@ -143,8 +143,7 @@ public class ShowSubCommand implements Callable<Integer> {
 
     private String buildSql(List<String> args) {
         final String argsAsString = args.stream().collect(Collectors.joining(" "));
-        final String sql = String.format("SHOW %s", argsAsString);
-        return sql;
+        return String.format("SHOW %s", argsAsString);
     }
 
 }

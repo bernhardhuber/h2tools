@@ -213,7 +213,7 @@ public class ScriptSubCommand implements Callable<Integer> {
         return sb.toString();
     }
 
-    private void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
+    private void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws Exception {
         logger.info("Executed rc {}", executedRc);
         if (executedRc) {
             logger.info("Executed rc {}", executedRc);

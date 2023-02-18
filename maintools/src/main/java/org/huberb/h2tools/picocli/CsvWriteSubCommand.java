@@ -112,11 +112,10 @@ public class CsvWriteSubCommand implements Callable<Integer> {
         final String theToFile = args.get(0);
         final String theQuery = args.get(1);
         final String theCsvOptions = args.get(2);
-        final String sql = String.format("CALL CSVWRITE( '%s', '%s', '%s' )", theToFile, theQuery, theCsvOptions);
-        return sql;
+        return String.format("CALL CSVWRITE( '%s', '%s', '%s' )", theToFile, theQuery, theCsvOptions);
     }
 
-    private void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
+    private void handleExcuteStatementOutput(boolean executedRc, Statement statement) throws Exception {
         logger.info("Executed rc {}", executedRc);
         if (executedRc) {
             logger.info("Executed rc {}", executedRc);

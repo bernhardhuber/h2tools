@@ -34,8 +34,7 @@ class DefaultDataSourceOrConnectionCreator {
         final String url = "jdbc:h2:mem:test1";
         final String username = "sa1";
         final String password = "sa1";
-        final JdbcConnectionPool cp = JdbcConnectionPool.create(url, username, password);
-        return cp;
+        return JdbcConnectionPool.create(url, username, password);
     }
 
     /**
@@ -59,8 +58,7 @@ class DefaultDataSourceOrConnectionCreator {
      * @return {@link ConnectionFactoryWithDataSource}
      */
     ConnectionFactoryWithDataSource createConnectionFactoryWithDataSource(DataSource dataSource) {
-        final ConnectionFactoryWithDataSource connectionFactoryWithDataSource = new ConnectionFactoryWithDataSource(dataSource);
-        return connectionFactoryWithDataSource;
+        return new ConnectionFactoryWithDataSource(dataSource);
     }
 
     //----
@@ -69,8 +67,7 @@ class DefaultDataSourceOrConnectionCreator {
         m.put("url", "jdbc:h2:mem:test1");
         m.put("user", "sa1");
         m.put("password", "sa1");
-        final ConnectionFactoryWithMap connectionFactoryWithMap = new ConnectionFactoryWithMap(m);
-        return connectionFactoryWithMap;
+        return new ConnectionFactoryWithMap(m);
     }
 
 }

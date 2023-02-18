@@ -56,7 +56,7 @@ public class JdbcSqlTest {
 
         final String sql;
 
-        private SqlStatements(String sql) {
+        SqlStatements(String sql) {
             this.sql = sql;
         }
 
@@ -69,12 +69,11 @@ public class JdbcSqlTest {
         final DefaultDataSourceOrConnectionCreator defaultDataSourceOrConnectionCreator = new DefaultDataSourceOrConnectionCreator();
         final DataSource jdbcConnectionPool = defaultDataSourceOrConnectionCreator.createJdbcConnectionPool();
         final DataSource jdbcDataSource = defaultDataSourceOrConnectionCreator.createJdbcDataSource();
-        final Stream<IConnectionFactory> streamOfIConnectionFactory = Stream.of(
+        return Stream.of(
                 defaultDataSourceOrConnectionCreator.createConnectionFactoryWithDataSource(jdbcConnectionPool),
                 defaultDataSourceOrConnectionCreator.createConnectionFactoryWithDataSource(jdbcDataSource),
                 defaultDataSourceOrConnectionCreator.createConnectionFactoryWithMap()
         );
-        return streamOfIConnectionFactory;
     }
 
     @ParameterizedTest

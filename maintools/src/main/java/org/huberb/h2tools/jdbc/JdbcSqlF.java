@@ -92,8 +92,7 @@ public class JdbcSqlF {
                 ConsumerThrowingSQLException<PreparedStatement> c) throws SQLException {
             try (PreparedStatement ps = f1.apply(conn)) {
                 c.accept(ps);
-                final int updateCount = ps.executeUpdate();
-                return updateCount;
+                return ps.executeUpdate();
             }
         }
         
@@ -120,8 +119,7 @@ public class JdbcSqlF {
             
             try (PreparedStatement ps = f1.apply(conn)) {
                 c.accept(ps);
-                int[] updates = ps.executeBatch();
-                return updates;
+                return ps.executeBatch();
             }
         }
         

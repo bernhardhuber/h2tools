@@ -72,7 +72,7 @@ public class MainToolsTest {
         {
             final String swOutAsString = swOut.toString();
             final String m = String.format("stdout helpOption %s, stdout: %s", helpOption, swOutAsString);
-            assertNotEquals(0, swOutAsString, m);
+            assertNotEquals("", swOutAsString, m);
             assertAll(
                     () -> assertTrue(swOutAsString.contains("Usage:"), m),
                     () -> assertTrue(swOutAsString.contains("toolName"), m),
@@ -95,7 +95,7 @@ public class MainToolsTest {
         {
             final String swOutAsString = swOut.toString();
             final String m = String.format("stdout versionOption %s, stdout: %s", versionOption, swOutAsString);
-            assertNotEquals(0, swOutAsString, m);
+            assertNotEquals("", swOutAsString, m);
             assertTrue(swOutAsString.contains("MainTools"), m);
         }
     }
@@ -117,7 +117,7 @@ public class MainToolsTest {
         {
             final String swOutAsString = swOut.toString();
             final String m = String.format("stdout option %s, stdout: %s", emptyOption, swOutAsString);
-            assertNotEquals(0, swOutAsString, m);
+            assertNotEquals("", swOutAsString, m);
 
             Arrays.asList(
                     "Backup",

@@ -28,8 +28,8 @@ class CommandAndRemainingArgs {
 
     static class Value {
 
-        String command;
-        String[] remainingArgs;
+        final String command;
+        final String[] remainingArgs;
 
         public Value(String command, String[] remainingArgs) {
             this.command = command;

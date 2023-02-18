@@ -153,8 +153,9 @@ public class MainTools implements Callable<Integer> {
 
     /**
      * Use picocli error print writer for printing to stderr.
-     *
-     * @param str
+     *<p>Use {@link String#format(String, Object...)} internally.</p>
+     * @param fmt message template
+     * @param args message arguments
      */
     void loggerInfo(String fmt, Object... args) {
         final String str = String.format(fmt, args);

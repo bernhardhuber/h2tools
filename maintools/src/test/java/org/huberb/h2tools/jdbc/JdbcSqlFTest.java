@@ -58,7 +58,7 @@ public class JdbcSqlFTest {
 
         final String sql;
 
-        private SqlStatements(String sql) {
+        SqlStatements(String sql) {
             this.sql = sql;
         }
 

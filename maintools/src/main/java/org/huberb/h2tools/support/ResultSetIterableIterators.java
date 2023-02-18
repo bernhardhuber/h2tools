@@ -51,8 +51,7 @@ public class ResultSetIterableIterators {
         @Override
         public boolean hasNext() {
             try {
-                final boolean hasNext = resultSet.next();
-                return hasNext;
+                return resultSet.next();
             } catch (SQLException sqlex) {
                 throw new ResultSetRunTimeException(sqlex);
             }

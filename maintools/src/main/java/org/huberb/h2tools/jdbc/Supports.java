@@ -32,7 +32,7 @@ public class Supports {
      * @param <T>
      */
     @FunctionalInterface
-    public static interface ConsumerThrowingSQLException<T> {
+    public interface ConsumerThrowingSQLException<T> {
 
         /**
          * Performs this operation on the given argument.
@@ -65,7 +65,7 @@ public class Supports {
     }
 
     @FunctionalInterface
-    public static interface FunctionThrowingSQLException<T, R> {
+    public interface FunctionThrowingSQLException<T, R> {
 
         /**
          * Performs this operation on the given argument.
@@ -88,7 +88,7 @@ public class Supports {
          * function and then applies this function
          * @throws NullPointerException if before is null
          *
-         * @see #andThen(Function)
+         * @see #andThen(FunctionThrowingSQLException)
          */
         default <V> FunctionThrowingSQLException<V, R> compose(FunctionThrowingSQLException<? super V, ? extends T> before) {
             Objects.requireNonNull(before);
@@ -108,7 +108,7 @@ public class Supports {
          * applies the {@code after} function
          * @throws NullPointerException if after is null
          *
-         * @see #compose(Function)
+         * @see #compose(FunctionThrowingSQLException)
          */
         default <V> FunctionThrowingSQLException<T, V> andThen(FunctionThrowingSQLException<? super R, ? extends V> after) {
             Objects.requireNonNull(after);

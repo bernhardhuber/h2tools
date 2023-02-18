@@ -179,7 +179,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
         return result;
     }
 
-    private void process(Map<String, String> args) throws SQLException, Exception {
+    private void process(Map<String, String> args) throws Exception {
         try (final Connection connection = this.mainH2.createConnection()) {
             connection.setAutoCommit(false);
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
@@ -217,7 +217,7 @@ public class CsvReadSubCommand implements Callable<Integer> {
         return sql;
     }
 
-    void handleExecuteStatementOutput(boolean executedRc, Statement statement) throws SQLException, Exception {
+    void handleExecuteStatementOutput(boolean executedRc, Statement statement) throws Exception {
         logger.info("Executed rc {}", executedRc);
         if (executedRc) {
             logger.info("Executed rc {}", executedRc);

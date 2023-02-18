@@ -40,24 +40,23 @@ public class JdbcSql implements AutoCloseable {
     /**
      * Create a new JdbcSql instance.
      *
-     * @param iconnectionFactory
+     * @param connectionFactory
      * @return
      */
-    public static JdbcSql newInstance(IConnectionFactory iconnectionFactory) {
-        final JdbcSql javaSQL = new JdbcSql(iconnectionFactory);
-        return javaSQL;
+    public static JdbcSql newInstance(IConnectionFactory connectionFactory) {
+        return new JdbcSql(connectionFactory);
     }
 
     /**
      * Create a new JdbSql instance, and pass it to the consumer.
      *
-     * @param iconnectionFactory
+     * @param connectionFactory
      * @param consumer
      * @throws SQLException
      */
-    public static void withInstance(IConnectionFactory iconnectionFactory,
+    public static void withInstance(IConnectionFactory connectionFactory,
             ConsumerThrowingSQLException<JdbcSql> consumer) throws SQLException {
-        try (JdbcSql jdbcSql = newInstance(iconnectionFactory)) {
+        try (JdbcSql jdbcSql = newInstance(connectionFactory)) {
             consumer.accept(jdbcSql);
         }
     }
@@ -197,7 +196,7 @@ public class JdbcSql implements AutoCloseable {
      * <p>
      * Invoke resultSetConsumer once with the {@link ResultSet}. Thus iterating
      * through the result-set is the responsibility of the resultSetConsumer.
-     *
+     * </p>
      *
      * @param sql the sql statement
      * @param preparedStatementConsumer a consumer accepting a

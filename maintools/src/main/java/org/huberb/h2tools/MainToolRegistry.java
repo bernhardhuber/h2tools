@@ -41,7 +41,7 @@ class MainToolRegistry {
             this.description = description;
         }
 
-        private final static List<ToolEntry> TOOL_ENTRY_LIST_INSTANCE() {
+        private static List<ToolEntry> TOOL_ENTRY_LIST_INSTANCE() {
             final List<ToolEntry> l = Arrays.asList(
                     new ToolEntry(
                             org.h2.tools.Backup.class.getSimpleName(),

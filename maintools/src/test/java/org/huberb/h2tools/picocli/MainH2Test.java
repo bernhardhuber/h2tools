@@ -70,7 +70,7 @@ public class MainH2Test {
         {
             final String swOutAsString = swOut.toString();
             final String m = String.format("stdout helpOption %s, stdout: %s", helpOption, swOutAsString);
-            assertNotEquals(0, swOutAsString, m);
+            assertNotEquals("", swOutAsString, m);
             assertAll(
                     () -> assertTrue(swOutAsString.contains("Usage:"), m),
                     () -> assertTrue(swOutAsString.contains("script"), m),
@@ -97,7 +97,7 @@ public class MainH2Test {
         {
             final String swOutAsString = swOut.toString();
             final String m = String.format("stdout versionOption %s, stdout: %s", versionOption, swOutAsString);
-            assertNotEquals(0, swOutAsString, m);
+            assertNotEquals("", swOutAsString, m);
             assertTrue(swOutAsString.contains("MainH2"), m);
         }
     }

@@ -82,7 +82,7 @@ public class OutputResultSet {
      * This interface is used by implementations writing result sets as CSV,
      * XML, plain, etc.
      */
-    public static interface OutputBy {
+    public interface OutputBy {
 
         /**
          * Define method for writing a {@link ResultSet} to a
@@ -161,11 +161,10 @@ public class OutputResultSet {
             @Override
             public void accept(Map<String, String> m) {
                 final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> mapEntry) -> {
-                    final String keyValueAsJson = String.format("\"%s\": \"%s\"",
+                    return String.format("\"%s\": \"%s\"",
                             encodeJson(mapEntry.getKey()),
                             encodeJson(mapEntry.getValue())
                     );
-                    return keyValueAsJson;
                 };
 
                 final StringBuilder sb = new StringBuilder();
@@ -192,7 +191,7 @@ public class OutputResultSet {
     static class OutputByArrayOfArraysJson implements OutputBy {
 
         @Override
-        public void output(ResultSet rs, PrintStream out) throws SQLException {
+        public void output(ResultSet rs, PrintStream out) {
             final Consumer<Map<String, String>> c = new TabularMapArrayOfArraysConsumer(out);
             final String jsonStart = "[\n";
             out.print(jsonStart);
@@ -275,11 +274,10 @@ public class OutputResultSet {
             @Override
             public void accept(Map<String, String> m) {
                 final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> mapEntry) -> {
-                    final String keyValueAsYaml = String.format("\"%s\": \"%s\"",
+                    return String.format("\"%s\": \"%s\"",
                             encodeYaml(mapEntry.getKey()),
                             encodeYaml(mapEntry.getValue())
                     );
-                    return keyValueAsYaml;
                 };
 
                 final StringBuilder sb = new StringBuilder();

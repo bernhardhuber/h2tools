@@ -18,6 +18,7 @@ package org.huberb.h2tools.support;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -88,7 +89,7 @@ public class OutputResultSetTest {
                 instance.output(rs, ps);
                 ps.flush();
 
-                result = baos.toString("UTF-8");
+                result = baos.toString(StandardCharsets.UTF_8);
             }
             {
                 final String resultFinal = result;
@@ -115,7 +116,7 @@ public class OutputResultSetTest {
                 instance.output(rs, ps);
                 ps.flush();
 
-                result = baos.toString("UTF-8");
+                result = baos.toString(StandardCharsets.UTF_8);
             }
             {
                 final String resultFinal = result;
@@ -140,7 +141,7 @@ public class OutputResultSetTest {
                 instance.output(rs, ps);
                 ps.flush();
 
-                result = baos.toString("UTF-8");
+                result = baos.toString(StandardCharsets.UTF_8);
             }
             {
                 final String resultFinal = result;
@@ -167,7 +168,7 @@ public class OutputResultSetTest {
                 instance.output(rs, ps);
                 ps.flush();
 
-                result = baos.toString("UTF-8");
+                result = baos.toString(StandardCharsets.UTF_8);
             }
             {
                 final String resultFinal = result;
@@ -194,7 +195,7 @@ public class OutputResultSetTest {
                 instance.output(rs, ps);
                 ps.flush();
 
-                result = baos.toString("UTF-8");
+                result = baos.toString(StandardCharsets.UTF_8);
             }
             {
                 final String resultFinal = result;
@@ -225,7 +226,7 @@ public class OutputResultSetTest {
                 instance.output(rs, ps);
                 ps.flush();
 
-                result = baos.toString("UTF-8");
+                result = baos.toString(StandardCharsets.UTF_8);
             }
 
             {

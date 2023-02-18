@@ -38,8 +38,7 @@ public class ConnectionFactoryWithMap implements IConnectionFactory {
     }
 
     Optional<String> extractUrl() {
-        final Optional<String> urlOptional = Optional.ofNullable((String) m.getOrDefault("url", null));
-        return urlOptional;
+        return Optional.ofNullable((String) m.getOrDefault("url", null));
     }
 
     Optional<String[]> extractUserPassword() {
@@ -55,8 +54,7 @@ public class ConnectionFactoryWithMap implements IConnectionFactory {
     }
 
     Optional<Properties> extractProperties() {
-        final Optional<Properties> propertiesOptional = Optional.ofNullable((Properties) m.getOrDefault("properties", null));
-        return propertiesOptional;
+        return Optional.ofNullable((Properties) m.getOrDefault("properties", null));
     }
 
     @Override

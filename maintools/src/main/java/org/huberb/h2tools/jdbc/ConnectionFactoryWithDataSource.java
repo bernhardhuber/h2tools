@@ -36,8 +36,7 @@ public class ConnectionFactoryWithDataSource implements IConnectionFactory {
 
     @Override
     public Connection createConnection() throws SQLException {
-        final Connection connection = this.dataSource.getConnection();
-        return connection;
+        return this.dataSource.getConnection();
     }
 
 }
