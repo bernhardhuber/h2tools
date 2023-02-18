@@ -17,7 +17,6 @@ package org.huberb.h2tools.jdbc;
 
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  *
@@ -135,7 +134,7 @@ public class Supports {
         }
 
         public Holder(T initial) {
-            this.t = t;
+            this.t = initial;
         }
 
         public T get() {

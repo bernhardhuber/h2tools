@@ -84,7 +84,7 @@ public class JdbcSql implements AutoCloseable {
     /**
      * Pass a non-auto-commit connection to the consumer.
      * <p>
-     * Only if consumer does not throw an expcetion, the db transaction is
+     * Only if consumer does not throw an exception, the db transaction is
      * committed. In case an exception is thrown, the transaction is rolled
      * back.
      *

@@ -94,8 +94,7 @@ public class ConnectionFactoryWithDataSourceTest {
                 dmd.getDatabaseProductName(),
                 dmd.getDatabaseProductVersion(),
                 dmd.getDriverName(),
-                dmd.getDriverVersion(),
-                ""
+                dmd.getDriverVersion()
         );
     }
 }

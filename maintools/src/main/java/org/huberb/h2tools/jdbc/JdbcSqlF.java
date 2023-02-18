@@ -174,9 +174,9 @@ public class JdbcSqlF {
          * function.
          * <p>
          * This implementation commits the transaction if no exception is thrown
-         * otherwise the started transaction is rollbacked.
+         * otherwise the started transaction is rollback.
          * <p>
-         * As a side-effect this implementation set {@link Connection#setAutoCommit(boolean)
+         * As a side effect this implementation set {@link Connection#setAutoCommit(boolean)
          * } always to {@code false}.
          *
          * @param connection
@@ -212,11 +212,10 @@ public class JdbcSqlF {
         
         public static FunctionThrowingSQLException<Connection, Map<String, Object>> getConnectionInfos() {
             return (connection) -> {
-                Map<String, Object> metaDataMap = new HashMap<String, Object>() {
+                Map<String, Object> metaDataMap = new HashMap<>() {
                     {
                         DatabaseMetaData metaData = connection.getMetaData();
                         put("metaData.CatalogSeparator", metaData.getCatalogSeparator());
-                        put("metaData.CatalogTerm", metaData.getCatalogTerm());
                         put("metaData.CatalogTerm", metaData.getCatalogTerm());
                         put("metaData.DatabaseMajorVersion", metaData.getDatabaseMajorVersion());
                         put("metaData.DatabaseMinorVersion", metaData.getDatabaseMinorVersion());
@@ -254,7 +253,7 @@ public class JdbcSqlF {
                         put("metaData.MaxUserNameLength", metaData.getMaxUserNameLength());
                     }
                 };
-                Map<String, Object> map = new HashMap<String, Object>() {
+                Map<String, Object> map = new HashMap<>() {
                     {
                         put("autoCommit", connection.getAutoCommit());
                         put("catalog", connection.getCatalog());
@@ -262,7 +261,7 @@ public class JdbcSqlF {
                         put("holdability", connection.getHoldability());
                         put("networkTimeout", connection.getNetworkTimeout());
                         put("schema", connection.getSchema());
-                        put("tansactionIsolation", connection.getTransactionIsolation());
+                        put("transactionIsolation", connection.getTransactionIsolation());
                         put("warnings", connection.getWarnings());
                     }
                 };

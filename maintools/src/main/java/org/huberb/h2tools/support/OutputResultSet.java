@@ -15,6 +15,9 @@
  */
 package org.huberb.h2tools.support;
 
+import org.h2.tools.Csv;
+import org.huberb.h2tools.support.OutputResultSet.ResultSetIterator.DefaultResulSetConsumer;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
@@ -28,15 +31,6 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.h2.tools.Csv;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.CSV;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.JSON;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.JSON_ARRAYS;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.JSON_MAPS;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.RAW;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.TABULAR;
-import static org.huberb.h2tools.support.OutputResultSet.OutputMode.YAML;
-import org.huberb.h2tools.support.OutputResultSet.ResultSetIterator.DefaultResulSetConsumer;
 
 /**
  *
@@ -77,7 +71,7 @@ public class OutputResultSet {
     }
 
     /**
-     * Interface definition to write a result set to an print stream.
+     * Interface definition to write a result set to a print stream.
      * <p>
      * This interface is used by implementations writing result sets as CSV,
      * XML, plain, etc.
@@ -389,11 +383,8 @@ public class OutputResultSet {
         RAW, CSV, JSON, JSON_ARRAYS, JSON_MAPS, YAML, TABULAR;
 
         public static Optional<OutputMode> findOutputMode(String outputModeAsString) {
-            Optional<OutputMode> foundOutputModeOpt = Arrays.asList(OutputMode.values())
-                    .stream()
-                    .filter((OutputMode om) -> {
-                        return om.name().equals(outputModeAsString);
-                    })
+            Optional<OutputMode> foundOutputModeOpt = Arrays.stream(OutputMode.values())
+                    .filter((OutputMode om) -> om.name().equals(outputModeAsString))
                     .findFirst();
             return foundOutputModeOpt;
         }
