@@ -25,11 +25,11 @@ import java.util.Iterator;
  */
 public class ResultSetIterableIterators {
 
-    static class ResultSetIterable implements Iterable<ResultSet> {
+    public static class ResultSetIterable implements Iterable<ResultSet> {
 
         final ResultSet resultSet;
 
-        ResultSetIterable(ResultSet resultSet) {
+        public ResultSetIterable(ResultSet resultSet) {
             this.resultSet = resultSet;
         }
 
