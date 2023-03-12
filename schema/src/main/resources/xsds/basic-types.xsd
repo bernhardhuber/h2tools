@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!--
+Copyright 2023 berni3.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<xs:schema version="1.0"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:huberb.org:schema:types:1_0"
+           xmlns="urn:huberb.org:schema:types:1_0"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="ItemName">
+        <xs:sequence>
+            <xs:element name="itemName" type="xs:string" />
+            <xs:element name="itemCode" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Address">
+        <xs:sequence>
+            <xs:element name="address" type="xs:string"/>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="region" type="xs:string" minOccurs="0"/>
+            <xs:element name="postalcode" type="xs:string"/>
+            <xs:element name="country" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="BankAccount">
+        <xs:sequence>    
+            <xs:element name="accountOwner" type="xs:string"/>
+            <xs:element name="iban" type="xs:string"/>
+            <xs:element name="bic" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Name">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string" minOccurs="0"/>
+            <xs:element name="firstName" type="xs:string"/>
+            <xs:element name="middleName" type="xs:string" minOccurs="0"/>
+            <xs:element name="lastName" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Person">
+        <xs:sequence>
+            <xs:element name="personName" type="Name"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Organisation">
+        <xs:sequence>
+            <xs:element name="organisationName" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LoginUser">
+        <xs:sequence>
+            <xs:element name="userName" type="xs:string"/>
+            <xs:element name="person" type="Person"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

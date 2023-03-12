@@ -1,0 +1,30 @@
+<urn:purchaseOrder orderDate="2008-09-29" xmlns:urn="urn:huberb.org:schema:po">
+  <urn:shipTo country="US">
+    <urn:name>string</urn:name>
+    <urn:street>string</urn:street>
+    <urn:city>string</urn:city>
+    <urn:state>string</urn:state>
+    <urn:zip>1000.00</urn:zip>
+  </urn:shipTo>
+  <urn:billTo country="US">
+    <urn:name>string</urn:name>
+    <urn:street>string</urn:street>
+    <urn:city>string</urn:city>
+    <urn:state>string</urn:state>
+    <urn:zip>1000.00</urn:zip>
+  </urn:billTo>
+  <!--Optional:-->
+  <urn:comment>string</urn:comment>
+  <urn:items>
+    <!--Zero or more repetitions:-->
+    <urn:item partNum="123-AB">
+      <urn:productName>string</urn:productName>
+      <urn:quantity>99</urn:quantity>
+      <urn:USPrice>1000.00</urn:USPrice>
+      <!--Optional:-->
+      <urn:comment>string</urn:comment>
+      <!--Optional:-->
+      <urn:shipDate>2014-09-19</urn:shipDate>
+    </urn:item>
+  </urn:items>
+</urn:purchaseOrder>
