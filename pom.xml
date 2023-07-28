@@ -35,6 +35,7 @@
     <modules>
         <module>maintools</module>
         <module>groovytools</module>
+        <module>schema</module>
     </modules>
     
     <dependencyManagement>
