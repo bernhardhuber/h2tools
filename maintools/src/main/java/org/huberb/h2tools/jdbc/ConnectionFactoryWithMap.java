@@ -37,26 +37,6 @@ public class ConnectionFactoryWithMap implements IConnectionFactory {
         this.m = m;
     }
 
-    Optional<String> extractUrl() {
-        return Optional.ofNullable((String) m.getOrDefault("url", null));
-    }
-
-    Optional<String[]> extractUserPassword() {
-        final Optional<String[]> userPasswordOptional;
-        final String user = (String) m.getOrDefault("user", null);
-        final String password = (String) m.getOrDefault("password", null);
-        if (user != null && password != null) {
-            userPasswordOptional = Optional.of(new String[]{user, password});
-        } else {
-            userPasswordOptional = Optional.empty();
-        }
-        return userPasswordOptional;
-    }
-
-    Optional<Properties> extractProperties() {
-        return Optional.ofNullable((Properties) m.getOrDefault("properties", null));
-    }
-
     @Override
     public Connection createConnection() throws SQLException {
         final Connection connection;
@@ -77,4 +57,24 @@ public class ConnectionFactoryWithMap implements IConnectionFactory {
         return connection;
     }
 
+
+    Optional<String> extractUrl() {
+        return Optional.ofNullable((String) m.getOrDefault("url", null));
+    }
+
+    Optional<String[]> extractUserPassword() {
+        final Optional<String[]> userPasswordOptional;
+        final String user = (String) m.getOrDefault("user", null);
+        final String password = (String) m.getOrDefault("password", null);
+        if (user != null && password != null) {
+            userPasswordOptional = Optional.of(new String[]{user, password});
+        } else {
+            userPasswordOptional = Optional.empty();
+        }
+        return userPasswordOptional;
+    }
+
+    Optional<Properties> extractProperties() {
+        return Optional.ofNullable((Properties) m.getOrDefault("properties", null));
+    }
 }
