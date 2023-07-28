@@ -23,6 +23,7 @@
 hs_err_pid*
 
 **/target/
+**/.idea/
 /MainTools.html
 /MainH2.html
 /schema/nbproject/
