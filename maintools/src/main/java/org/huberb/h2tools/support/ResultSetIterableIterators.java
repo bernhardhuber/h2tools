@@ -25,6 +25,9 @@ import java.util.Iterator;
  */
 public class ResultSetIterableIterators {
 
+    private ResultSetIterableIterators() {
+    }
+
     public static class ResultSetIterable implements Iterable<ResultSet> {
 
         final ResultSet resultSet;

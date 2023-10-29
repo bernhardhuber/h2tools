@@ -37,6 +37,9 @@ import org.h2.tools.Csv;
  */
 public class CsvReadWriteWrappers {
 
+    private CsvReadWriteWrappers() {
+    }
+
     /**
      * Write CSV.
      */
