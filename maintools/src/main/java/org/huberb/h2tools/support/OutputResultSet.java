@@ -15,9 +15,6 @@
  */
 package org.huberb.h2tools.support;
 
-import org.h2.tools.Csv;
-import org.huberb.h2tools.support.OutputResultSet.ResultSetIterator.DefaultResulSetConsumer;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
@@ -31,6 +28,8 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.h2.tools.Csv;
+import org.huberb.h2tools.support.OutputResultSet.ResultSetIterator.DefaultResulSetConsumer;
 
 /**
  *
@@ -42,8 +41,7 @@ public class OutputResultSet {
         if (s == null) {
             return "";
         }
-        final String encoded = s
-                .replace("\\", "\\" + "\\")
+        return s.replace("\\", "\\" + "\\")
                 .replace("\"", "\\" + "\"")
                 .replace("/", "\\" + "/")
                 .replace("\b", "\\" + "b")
@@ -51,15 +49,13 @@ public class OutputResultSet {
                 .replace("\n", "\\" + "n")
                 .replace("\r", "\\" + "r")
                 .replace("\t", "\\" + "t");
-        return encoded;
     }
 
     static String encodeYaml(String s) {
         if (s == null) {
             return "";
         }
-        final String encoded = s
-                .replace("\\", "\\" + "\\")
+        return s.replace("\\", "\\" + "\\")
                 .replace("\"", "\\" + "\"")
                 .replace("/", "\\" + "/")
                 .replace("\b", "\\" + "b")
@@ -67,7 +63,6 @@ public class OutputResultSet {
                 .replace("\n", "\\" + "n")
                 .replace("\r", "\\" + "r")
                 .replace("\t", "\\" + "t");
-        return encoded;
     }
 
     /**
@@ -100,9 +95,8 @@ public class OutputResultSet {
             final Consumer<Map<String, String>> c = (Map<String, String> m) -> {
                 m.entrySet().
                         stream().
-                        forEach((e) -> {
-                            out.printf("%s: %s%n", e.getKey(), e.getValue());
-                        });
+                        forEach(e -> out.printf("%s: %s%n", e.getKey(), e.getValue())
+                        );
                 out.println();
             };
             final DefaultResulSetConsumer drsc = new DefaultResulSetConsumer(c);
@@ -154,12 +148,11 @@ public class OutputResultSet {
 
             @Override
             public void accept(Map<String, String> m) {
-                final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> mapEntry) -> {
-                    return String.format("\"%s\": \"%s\"",
-                            encodeJson(mapEntry.getKey()),
-                            encodeJson(mapEntry.getValue())
-                    );
-                };
+                final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> me)
+                        -> String.format("\"%s\": \"%s\"",
+                                encodeJson(me.getKey()),
+                                encodeJson(me.getValue())
+                        );
 
                 final StringBuilder sb = new StringBuilder();
                 final String joiningDelimiter = ", ";
@@ -213,7 +206,7 @@ public class OutputResultSet {
                 if (rowCount == 0) {
                     final String firstRow = m.keySet()
                             .stream()
-                            .map((k) -> "\"" + encodeJson(k) + "\"")
+                            .map(k -> "\"" + encodeJson(k) + "\"")
                             .collect(Collectors.joining(joiningDelimiter)
                             );
                     sb.append("[");
@@ -267,12 +260,11 @@ public class OutputResultSet {
 
             @Override
             public void accept(Map<String, String> m) {
-                final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> mapEntry) -> {
-                    return String.format("\"%s\": \"%s\"",
-                            encodeYaml(mapEntry.getKey()),
-                            encodeYaml(mapEntry.getValue())
-                    );
-                };
+                final Function<Map.Entry<String, String>, String> f = (Map.Entry<String, String> me)
+                        -> String.format("\"%s\": \"%s\"",
+                                encodeYaml(me.getKey()),
+                                encodeYaml(me.getValue())
+                        );
 
                 final StringBuilder sb = new StringBuilder();
                 final String joiningDelimiter = ", ";
