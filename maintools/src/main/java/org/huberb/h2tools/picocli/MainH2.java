@@ -115,7 +115,11 @@ public class MainH2 implements Callable<Integer> {
     }
 
     Connection createConnection() throws SQLException {
-        logger.info(String.format("Create connection url %s, user %s, password %s", jdbcDriver, jdbcURL, userName, password));
+        logger.info(String.format("Create connection "
+                + "driver %s, url %s, "
+                + "user %s, password %s",
+                jdbcDriver, jdbcURL,
+                userName, password));
         return JdbcUtils.getConnection(jdbcDriver, jdbcURL, userName, password);
     }
 
